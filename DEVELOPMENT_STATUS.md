@@ -1,8 +1,8 @@
 # DEVELOPMENT STATUS TRACKER
 ## ResearchIDE: Live Phase & Feature Status
 **Last Updated:** 6 November 2026  
-**Current Phase:** **Phase 5 — Research Intelligence & Literature Management (COMPLETE)**  
-**Next Phase:** **Phase 6 — Academic Templates & Publication Preparation**  
+**Current Phase:** **Phase 6 — Academic Templates & Publication Preparation (COMPLETE)**  
+**Next Phase:** **Phase 7 — Reliability, Performance & Windows Release**  
 
 ---
 
@@ -16,21 +16,20 @@
 | **Phase 3** | Visual Document Editor & Sync | **COMPLETE** | QWebEngineView canvas, QWebChannel, SyncBridge, Mode Switcher (28/28 tests pass) |
 | **Phase 4** | Local AI Engine (Ollama) | **COMPLETE** | Local Ollama daemon client, Single-model governor, Permission diff UI (34/34 tests pass) |
 | **Phase 5** | Research Intelligence & Literature | **COMPLETE** | PyPDF extraction, Grounded evidence linking, BibTeX/RIS, Matrix (40/40 tests pass) |
-| **Phase 6** | Academic Templates & Publication Prep | **PENDING** | Ready for execution |
-| **Phase 7** | Reliability, Performance & Windows Release | Pending | Dependent on Phase 6 |
+| **Phase 6** | Academic Templates & Publication Prep | **COMPLETE** | Publisher Profiles (IEEE, ACM, Springer, Elsevier), Auditor, Bundler (45/45 tests pass) |
+| **Phase 7** | Reliability, Performance & Windows Release | **PENDING** | Ready for execution |
 
 ---
 
 ## 2. Feature Implementation Status
 
-### Completed Features (Phase 5)
-- **Research PDF Ingestion & Extraction:** Local PyPDF text, author, title, and DOI extraction preserving original documents in project `literature/` folder (`src/services/literature_service.py`).
-- **Grounded Evidence & Claim Traceability:** Links extracted scientific claims and search results to exact paper names and 1-indexed page numbers, preventing ungrounded hallucinations.
-- **Reference & Citation Manager:** Complete BibTeX, RIS, and CSL JSON import and export; formatters for LaTeX `\cite`, IEEE, and APA styles (`src/services/reference_service.py`).
-- **Comparative Literature Matrix:** Automated comparative analysis across papers (Objective, Methodology, Dataset, Results, Limitations) with exports to Markdown and LaTeX tables (`src/services/literature_matrix.py`).
-- **Dataset Inspector:** Local CSV and TSV file parsing with column data type inference, missing value counts, and descriptive statistics (`src/services/dataset_service.py`).
-- **Literature & Reference UI:** Multi-tab dockable `LiteraturePanel` (`src/ui/literature_panel.py`) supporting PDF library search, citation table filtering, one-click citation insertion into manuscripts, matrix exports, and tabular dataset previews.
-- **Automated Tests:** 6 comprehensive unit tests validating BibTeX parsing/export, RIS/CSL export, PDF text extraction, evidence search grounding, literature matrix synthesis, and CSV dataset profiling (`tests/test_phase5_research_intelligence.py`).
+### Completed Features (Phase 6)
+- **Academic Template Profiles:** Master catalog supporting IEEE (`IEEEtran`), ACM (`acmart`), Springer Nature (`sn-jnl`), Elsevier (`elsarticle`), and General Preprint (`article`) formats (`src/services/template_service.py`).
+- **Non-Destructive Template Migrator:** Migrates manuscripts between publisher profiles while safely preserving all manuscript sections, equations, citations, figures, tables, and TikZ macros.
+- **Publication Compliance Auditor:** Rule-based verification auditing abstract word counts, required sections, figure/table captions, bibliography keys, and mandatory manual review advisories (`src/services/compliance_auditor.py`).
+- **Submission Package Bundler:** Assembles clean, reproducible submission bundles (`.zip`) containing the main `.tex` source, compiled `.pdf`, `.bib` databases, `assets/` figures, and an automated `SUBMISSION_CHECKLIST.md` report (`src/services/submission_bundler.py`).
+- **Submission UI & Ribbon Actions:** Interactive `SubmissionDialog` (`src/ui/dialogs/submission_dialog.py`) allowing researchers to select templates, audit manuscripts, and export ready-to-submit ZIP packages directly from the Ribbon toolbar.
+- **Automated Tests:** 5 comprehensive unit tests covering template catalogs, non-destructive migration, compliance auditor rule validation, violation detection, and ZIP packaging (`tests/test_phase6_publication.py`).
 
 ---
 
@@ -39,4 +38,4 @@
 - **PySide6:** Installed (v6.12.0) with WebEngine, WebChannel, Pdf, and Core modules.
 - **PDF Extraction:** `pypdf` (v6.21.4).
 - **LaTeX Distribution:** MiKTeX verified at `E:\miktex\miktex\bin\x64\pdflatex.exe`.
-- **Automated Tests:** 40/40 passing (100% pass rate).
+- **Automated Tests:** 45/45 passing (100% pass rate).

@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Phase 6: Academic Templates and Publication Preparation] - 2026-11-06
+
+### Added
+- **Publisher Template Catalog:**
+  - Implemented `PublicationTemplate` registry (`src/services/template_service.py`) supporting IEEE Transactions (`IEEEtran`), ACM SIGCONF (`acmart`), Springer Nature (`sn-jnl`), Elsevier (`elsarticle`), and General Preprint (`article`).
+  - Implemented `TemplateMigrator` for non-destructive manuscript profile switching that preserves all manuscript text, equations, citations, and figures.
+- **Publication Compliance Auditor:**
+  - Implemented `PublicationComplianceAuditor` (`src/services/compliance_auditor.py`) checking abstract word limits, publisher-required sections, figure/table captions, and in-text citation consistency.
+  - Implemented structured `ComplianceReport` separating automated checks from manual editorial advisories.
+- **Submission Package Bundler:**
+  - Implemented `SubmissionBundler` (`src/services/submission_bundler.py`) packaging LaTeX sources, compiled PDFs, BibTeX databases, assets, and auto-generated `SUBMISSION_CHECKLIST.md` into clean ZIP archives.
+- **Submission Dialog & Ribbon Integration:**
+  - Implemented `SubmissionDialog` (`src/ui/dialogs/submission_dialog.py`) providing an interactive publication prep workflow directly from the Ribbon toolbar.
+- **Automated Test Suite:**
+  - Added 5 unit tests in `tests/test_phase6_publication.py` validating template profiles, migration safety, compliance audits, violation detection, and ZIP packaging (45/45 tests passing total).
+
+---
+
 ## [Phase 5: Research Intelligence and Literature Management] - 2026-11-06
 
 ### Added

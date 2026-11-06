@@ -36,6 +36,7 @@ from src.ui.notifications import NotificationToast
 from src.ui.dialogs.new_project_dialog import NewProjectDialog
 from src.ui.dialogs.settings_dialog import SettingsDialog
 from src.ui.dialogs.new_document_dialog import NewDocumentDialog
+from src.ui.dialogs.submission_dialog import SubmissionDialog
 from src.utils.logger import app_logger
 
 
@@ -121,6 +122,7 @@ class MainWindow(QMainWindow):
         self.ribbon.insert_citation_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.PARAGRAPH, r"\cite{sample_ref}"))
         self.ribbon.ai_panel_requested.connect(self.action_show_ai_panel)
         self.ribbon.literature_panel_requested.connect(self.action_show_literature_panel)
+        self.ribbon.prepare_submission_clicked.connect(self.action_prepare_submission)
         container_layout.addWidget(self.ribbon)
 
         # Stacked Central Area (Dashboard vs Document Workspace)
@@ -603,6 +605,29 @@ class MainWindow(QMainWindow):
             self.show_notification(f"Inserted citation: {citation_latex}", level="info")
         else:
             self.show_notification("No active document to insert citation.", level="warning")
+
+    # --- Publication Preparation & Submission Bundling ---
+
+    def action_prepare_submission(self) -> None:
+        """Open the Submission Preparation and Compliance dialog."""
+        if not self.project_manager.active_project:
+            QMessageBox.information(self, "Submission Packager", "Please open or create a project first.")
+            return
+
+        current_tab = self.workspace.get_current_tab()
+        current_tex = current_tab.file_path if current_tab else (self.project_manager.active_project.root_dir / "src" / "main.tex")
+        if not current_tex.exists():
+            current_tex = self.project_manager.active_project.root_dir / "main.tex"
+
+        dlg = SubmissionDialog(
+            project_dir=self.project_manager.active_project.root_dir,
+            current_tex_file=current_tex,
+            parent=self,
+        )
+        if dlg.exec():
+            # If current document was modified by template application, reload it
+            if current_tab:
+                current_tab.load_content()
 
     def closeEvent(self, event) -> None:
         if self.compile_thread and self.compile_thread.isRunning():

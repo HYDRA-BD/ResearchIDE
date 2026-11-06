@@ -32,6 +32,7 @@ class RibbonBar(QFrame):
     insert_citation_clicked = Signal()
     ai_panel_requested = Signal(str)  # command or prompt prefix
     literature_panel_requested = Signal()
+    prepare_submission_clicked = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -106,8 +107,13 @@ class RibbonBar(QFrame):
         btn_compile.setStyleSheet("font-weight: bold; color: #4daafc;")
         btn_compile.clicked.connect(self.compile_clicked.emit)
 
+        btn_package = QPushButton("📦 Submission Packager")
+        btn_package.setProperty("class", "RibbonBtn")
+        btn_package.clicked.connect(self.prepare_submission_clicked.emit)
+
         doc_layout.addWidget(btn_new_doc)
         doc_layout.addWidget(btn_compile)
+        doc_layout.addWidget(btn_package)
         tab_layout.addWidget(doc_group)
 
         # 3. Preferences Group
