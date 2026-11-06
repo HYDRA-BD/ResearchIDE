@@ -24,8 +24,9 @@ class DocumentSyncEngine:
         self.parser = LaTeXDocumentParser()
         self.serializer = LaTeXDocumentSerializer()
 
+    @classmethod
     def patch_block(
-        self,
+        cls,
         doc: CanonicalDocument,
         raw_source: str,
         block_id: str,
@@ -36,6 +37,16 @@ class DocumentSyncEngine:
         Raises:
             ValueError: If block is not found or block is an OpaqueLaTeXBlock.
         """
+        engine = cls()
+        return engine._patch_block_internal(doc, raw_source, block_id, new_content)
+
+    def _patch_block_internal(
+        self,
+        doc: CanonicalDocument,
+        raw_source: str,
+        block_id: str,
+        new_content: str,
+    ) -> Tuple[CanonicalDocument, str]:
         block = doc.get_block_by_id(block_id)
         if not block:
             raise ValueError(f"Block with ID '{block_id}' not found in document.")

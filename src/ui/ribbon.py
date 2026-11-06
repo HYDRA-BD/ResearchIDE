@@ -25,6 +25,11 @@ class RibbonBar(QFrame):
     new_document_clicked = Signal()
     view_mode_changed = Signal(str)  # 'split', 'editor_only', 'pdf_only'
     forward_sync_clicked = Signal()
+    insert_section_clicked = Signal()
+    insert_equation_clicked = Signal()
+    insert_table_clicked = Signal()
+    insert_figure_clicked = Signal()
+    insert_citation_clicked = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -124,17 +129,29 @@ class RibbonBar(QFrame):
         struct_group, struct_layout = self._create_group("Academic Structure")
         btn_sec = QPushButton("📑 Section")
         btn_sec.setProperty("class", "RibbonBtn")
+        btn_sec.clicked.connect(self.insert_section_clicked.emit)
+
         btn_eq = QPushButton("∑ Equation")
         btn_eq.setProperty("class", "RibbonBtn")
+        btn_eq.clicked.connect(self.insert_equation_clicked.emit)
+
         btn_fig = QPushButton("🖼️ Figure")
         btn_fig.setProperty("class", "RibbonBtn")
+        btn_fig.clicked.connect(self.insert_figure_clicked.emit)
+
         btn_tbl = QPushButton("📊 Table")
         btn_tbl.setProperty("class", "RibbonBtn")
+        btn_tbl.clicked.connect(self.insert_table_clicked.emit)
+
+        btn_cite = QPushButton("🏷️ Citation")
+        btn_cite.setProperty("class", "RibbonBtn")
+        btn_cite.clicked.connect(self.insert_citation_clicked.emit)
 
         struct_layout.addWidget(btn_sec)
         struct_layout.addWidget(btn_eq)
         struct_layout.addWidget(btn_fig)
         struct_layout.addWidget(btn_tbl)
+        struct_layout.addWidget(btn_cite)
         tab_layout.addWidget(struct_group)
 
         tab_layout.addStretch()

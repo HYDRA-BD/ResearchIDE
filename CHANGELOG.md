@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Phase 3: Visual Document Editor and Bidirectional Synchronization] - 2026-11-06
+
+### Added
+- **Visual Academic Canvas:**
+  - Implemented `VisualEditorWidget` (`src/ui/editors/visual_editor.py`) embedding `QWebEngineView` and `QWebChannel`.
+  - Rendered academic manuscript layout with editable headings (H1-H3), paragraphs, equation blocks, tabular environments, and figures.
+  - Implemented protected opaque code pills (🔒 OPAQUE LATEX) for TikZ graphics, custom macros, and raw preamble directives, preventing visual WYSIWYG corruption.
+- **Bidirectional SyncBridge:**
+  - Implemented `SyncBridge` (`src/core/sync_bridge.py`) converting visual mutations into surgical byte-range replacements via `DocumentSyncEngine`.
+  - Implemented re-entrance guard locks preventing recursive update feedback loops between visual and code editors.
+  - Implemented incremental parsing of source edits to refresh visual DOM blocks dynamically.
+  - Implemented bidirectional cursor/selection coordinate mapping between visual DOM elements (`data-block-id`) and LaTeX source line ranges.
+- **Multi-Mode Editor Workspace:**
+  - Enhanced `DocumentTab` (`src/ui/workspace.py`) with mode switcher toolbar supporting *Visual*, *LaTeX Source*, and *Side-by-Side Split* editor layouts.
+  - Synchronized text modifications and cursor movements between `VisualEditorWidget` and `CodeEditor`.
+- **Ribbon Insert Integration:**
+  - Connected *Insert* tab buttons in `RibbonBar` (Section, Equation, Figure, Table, Citation) to insert corresponding LaTeX structures into active documents.
+- **Automated Test Suite:**
+  - Added 6 automated tests in `tests/test_phase3_visual_editor.py` validating dictionary serialization, surgical visual patching, opaque block protection, academic block insertion, coordinate mapping, and tab mode switching (28/28 tests passing total).
+
+---
+
 ## [Phase 2: LaTeX Engine, Compiler and PDF Preview] - 2026-11-06
 
 ### Added

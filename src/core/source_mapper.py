@@ -14,6 +14,14 @@ class SourceMapper:
     def __init__(self, doc: CanonicalDocument) -> None:
         self.doc = doc
 
+    @classmethod
+    def find_block_at_line(cls, doc: CanonicalDocument, line: int) -> Optional[CanonicalBlock]:
+        """Find the canonical block spanning the given source line number."""
+        for block in doc.blocks:
+            if block.source_range and block.source_range.start_line <= line <= block.source_range.end_line:
+                return block
+        return None
+
     def get_range_for_block(self, block_id: str) -> Optional[SourceRange]:
         """Lookup the source coordinate range for a given visual block ID."""
         block = self.doc.get_block_by_id(block_id)

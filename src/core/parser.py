@@ -82,14 +82,23 @@ class LaTeXDocumentParser:
             end_byte=end_offset,
         )
 
-    def parse(self, text: str) -> CanonicalDocument:
+    @classmethod
+    def parse(cls, text: str) -> CanonicalDocument:
         """Parse complete LaTeX source text into a CanonicalDocument."""
+        parser = cls()
+        return parser._parse_internal(text)
+
+    def _parse_internal(self, text: str) -> CanonicalDocument:
         doc = CanonicalDocument()
         line_offsets = self._compute_line_col_offsets(text)
 
         # 1. Preamble and Postamble Extraction
         begin_doc_match = re.search(r"\\begin\{document\}", text)
         end_doc_match = re.search(r"\\end\{document\}", text)
+
+        title_match = re.search(r"\\title\{([^}]+)\}", text)
+        if title_match:
+            doc.title = title_match.group(1).strip()
 
         body_start = 0
         body_end = len(text)

@@ -10,15 +10,21 @@ from PySide6.QtWidgets import (
     QTabWidget,
     QSplitter,
     QMessageBox,
+    QButtonGroup,
+    QPushButton,
+    QLabel,
+    QStackedWidget,
 )
 from src.ui.editors.code_editor import CodeEditor
+from src.ui.editors.visual_editor import VisualEditorWidget
 from src.ui.viewer.pdf_viewer import PDFViewerWidget
 from src.storage.file_manager import FileManager
+from src.core.document import BlockType
 from src.utils.logger import app_logger
 
 
 class DocumentTab(QWidget):
-    """Represents an active document editor tab."""
+    """Represents an active multi-mode document editor tab supporting Visual, Source, and Split views."""
 
     content_changed = Signal(bool)  # is_dirty
 
@@ -26,32 +32,127 @@ class DocumentTab(QWidget):
         super().__init__(parent)
         self.file_path = Path(file_path).resolve()
         self.is_dirty = False
+        self._is_syncing = False
 
         self._init_ui()
         self.load_content()
 
     def _init_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
-        # Code Editor with Line Numbers & Highlighting
-        self.editor = CodeEditor(self.file_path, self)
-        self.editor.textChanged.connect(self._on_text_changed)
-        layout.addWidget(self.editor)
+        # Mode Selector Toolbar
+        mode_bar = QWidget(self)
+        mode_bar.setObjectName("EditorModeBar")
+        mode_layout = QHBoxLayout(mode_bar)
+        mode_layout.setContentsMargins(6, 4, 6, 4)
+        mode_layout.setSpacing(6)
+
+        mode_label = QLabel("Mode:", self)
+        mode_label.setStyleSheet("font-weight: 600; color: #666;")
+        mode_layout.addWidget(mode_label)
+
+        self.btn_group = QButtonGroup(self)
+        self.btn_group.setExclusive(True)
+
+        self.btn_visual = QPushButton("Visual", self)
+        self.btn_visual.setCheckable(True)
+        self.btn_visual.setChecked(True)
+        self.btn_visual.clicked.connect(lambda: self.set_editor_mode("visual"))
+        self.btn_group.addButton(self.btn_visual)
+        mode_layout.addWidget(self.btn_visual)
+
+        self.btn_source = QPushButton("LaTeX Source", self)
+        self.btn_source.setCheckable(True)
+        self.btn_source.clicked.connect(lambda: self.set_editor_mode("source"))
+        self.btn_group.addButton(self.btn_source)
+        mode_layout.addWidget(self.btn_source)
+
+        self.btn_split = QPushButton("Side-by-Side", self)
+        self.btn_split.setCheckable(True)
+        self.btn_split.clicked.connect(lambda: self.set_editor_mode("split"))
+        self.btn_group.addButton(self.btn_split)
+        mode_layout.addWidget(self.btn_split)
+
+        mode_layout.addStretch()
+        main_layout.addWidget(mode_bar)
+
+        # Stack/Container for Editors
+        self.editor_container = QWidget(self)
+        container_layout = QVBoxLayout(self.editor_container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(0)
+
+        # Visual Editor
+        self.visual_editor = VisualEditorWidget(self)
+
+        # Code Editor
+        self.code_editor = CodeEditor(self.file_path, self)
+
+        # Internal Splitter for Side-by-Side (Visual + Source)
+        self.internal_splitter = QSplitter(Qt.Orientation.Horizontal, self)
+        self.internal_splitter.addWidget(self.visual_editor)
+        self.internal_splitter.addWidget(self.code_editor)
+        self.internal_splitter.setSizes([500, 500])
+
+        container_layout.addWidget(self.internal_splitter)
+        main_layout.addWidget(self.editor_container)
+
+        # Connect synchronization signals
+        self._wire_sync()
+
+        # Start in Visual mode
+        self.set_editor_mode("visual")
+
+    def _wire_sync(self) -> None:
+        # Visual edits patch CodeEditor text
+        self.visual_editor.content_modified.connect(self._on_visual_modified)
+
+        # CodeEditor edits trigger dirty flag
+        self.code_editor.textChanged.connect(self._on_source_text_changed)
+
+        # Block focus jumps in source
+        self.visual_editor.block_focused.connect(self._on_visual_block_focused)
+
+        # Source cursor movement reflects in visual canvas
+        self.code_editor.cursorPositionChanged.connect(self._on_source_cursor_moved)
+
+    def set_editor_mode(self, mode: str) -> None:
+        """Switch between 'visual', 'source', and 'split' editor modes."""
+        if mode == "visual":
+            self.visual_editor.show()
+            self.code_editor.hide()
+            self.btn_visual.setChecked(True)
+            # Sync source changes into visual
+            self.visual_editor.load_latex(self.code_editor.toPlainText())
+        elif mode == "source":
+            self.visual_editor.hide()
+            self.code_editor.show()
+            self.btn_source.setChecked(True)
+        elif mode == "split":
+            self.visual_editor.show()
+            self.code_editor.show()
+            self.internal_splitter.setSizes([500, 500])
+            self.btn_split.setChecked(True)
+            self.visual_editor.load_latex(self.code_editor.toPlainText())
 
     def load_content(self) -> None:
         try:
             content = FileManager.read_text(self.file_path)
-            self.editor.setPlainText(content)
+            self._is_syncing = True
+            self.code_editor.setPlainText(content)
+            self.visual_editor.load_latex(content)
+            self._is_syncing = False
             self.is_dirty = False
             self.content_changed.emit(False)
         except Exception as e:
             app_logger.error(f"Failed to load file '{self.file_path}': {e}")
-            self.editor.setPlainText(f"% Error reading file: {e}")
+            self.code_editor.setPlainText(f"% Error reading file: {e}")
 
     def save_content(self) -> bool:
         try:
-            content = self.editor.toPlainText()
+            content = self.code_editor.toPlainText()
             FileManager.atomic_write(self.file_path, content)
             self.is_dirty = False
             self.content_changed.emit(False)
@@ -62,10 +163,49 @@ class DocumentTab(QWidget):
             QMessageBox.critical(self, "Save Error", f"Failed to save file: {e}")
             return False
 
-    def _on_text_changed(self) -> None:
+    def _on_visual_modified(self, patched_latex: str) -> None:
+        if self._is_syncing:
+            return
+        self._is_syncing = True
+        try:
+            # Preserve cursor position if possible
+            cursor = self.code_editor.textCursor()
+            pos = cursor.position()
+            self.code_editor.setPlainText(patched_latex)
+            cursor.setPosition(min(pos, len(patched_latex)))
+            self.code_editor.setTextCursor(cursor)
+            self._mark_dirty()
+        finally:
+            self._is_syncing = False
+
+    def _on_source_text_changed(self) -> None:
+        if self._is_syncing:
+            return
+        self._mark_dirty()
+
+    def _mark_dirty(self) -> None:
         if not self.is_dirty:
             self.is_dirty = True
             self.content_changed.emit(True)
+
+    def _on_visual_block_focused(self, block_id: str, start_line: int, end_line: int) -> None:
+        """Jump source editor cursor to start line of selected block."""
+        self.code_editor.go_to_line(start_line)
+
+    def _on_source_cursor_moved(self) -> None:
+        if self._is_syncing:
+            return
+        line = self.code_editor.textCursor().blockNumber() + 1
+        self.visual_editor.scroll_to_source_line(line)
+
+    def insert_element(self, block_type: BlockType, content: str = "") -> None:
+        """Insert an element into the document."""
+        self.visual_editor.insert_element(block_type, content)
+
+    @property
+    def editor(self) -> CodeEditor:
+        """Convenience accessor for backward-compatibility."""
+        return self.code_editor
 
 
 class DocumentWorkspace(QWidget):
@@ -124,7 +264,7 @@ class DocumentWorkspace(QWidget):
         """Return the active CodeEditor instance."""
         current_tab = self.tabs.currentWidget()
         if isinstance(current_tab, DocumentTab):
-            return current_tab.editor
+            return current_tab.code_editor
         return None
 
     def get_current_tab(self) -> Optional[DocumentTab]:
@@ -200,10 +340,15 @@ class DocumentWorkspace(QWidget):
         for norm_key, tab in self.open_tabs.items():
             if tab.file_path.name == file_name or tab.file_path.stem == Path(file_name).stem:
                 self.tabs.setCurrentWidget(tab)
-                tab.editor.go_to_line(line_number)
+                tab.code_editor.go_to_line(line_number)
                 return
 
-        # If file is not open, current tab editor is focused
         editor = self.get_current_editor()
         if editor:
             editor.go_to_line(line_number)
+
+    def insert_element_in_current(self, block_type: BlockType, content: str = "") -> None:
+        """Insert element into currently active document tab."""
+        tab = self.get_current_tab()
+        if tab:
+            tab.insert_element(block_type, content)

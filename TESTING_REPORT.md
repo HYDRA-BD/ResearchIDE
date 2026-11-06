@@ -6,14 +6,15 @@
 - **Phase 0 — System Architecture & Technical Prototype** (6 tests)  
 - **Phase 1 — Desktop Application Foundation & Workspace** (9 tests)  
 - **Phase 2 — LaTeX Source Editor, Compiler Daemon & PDF Preview** (7 tests)  
-**Execution Status:** **ALL TESTS PASSED (22/22, 100%)**  
+- **Phase 3 — Visual Document Editor & Bidirectional Synchronization** (6 tests)  
+**Execution Status:** **ALL TESTS PASSED (28/28, 100%)**  
 
 ---
 
 ## 1. Test Execution Summary
 
 ```text
-Ran 22 tests in 0.607s
+Ran 28 tests in 1.210s
 Status: OK (100% Pass Rate)
 Failures: 0
 Errors: 0
@@ -38,22 +39,29 @@ Skipped: 0
 | `test_project_reopening` | Verifies closing and reopening an existing project restores metadata and active project identity. | Project Manager | **PASS** |
 | `test_project_renaming` | Verifies project directory renaming, metadata synchronization, and recent projects list updates. | Project Manager | **PASS** |
 | `test_project_deletion` | Verifies permanent project directory deletion and removal from recent projects history. | Project Manager | **PASS** |
-| `test_path_traversal_security` | Verifies `FileManager.validate_path_within_project` strictly blocks path traversal (`..`) attempts outside project root. | Security & Path Jail | **PASS** |
-| `test_atomic_write_safety` | Verifies atomic file writing via temporary swap files prevents data loss during file writes. | Atomic File I/O | **PASS** |
-| `test_desktop_ui_initialization` | Verifies headless PySide6 `MainWindow` startup with Ribbon toolbar, Home dashboard, Project Explorer, and workspace tabs. | PySide6 Desktop UI | **PASS** |
-| `test_compiler_discovery` | Verifies discovery of local TeX distributions and engines (`pdflatex`, `xelatex`, `lualatex`, `bibtex`, `synctex`). | Compiler Service | **PASS** |
-| `test_log_parser_errors_and_warnings` | Verifies structured extraction of fatal errors, line numbers, citation warnings, and overfull hbox logs. | LaTeX Log Parser | **PASS** |
-| `test_code_editor_line_numbers_and_search` | Verifies code editor line number gutter, active line highlighting, error markers, and search & replace engine. | Code Editor | **PASS** |
-| `test_syntax_highlighter_latex_and_bibtex` | Verifies syntax highlighters correctly configure rules for LaTeX commands, math, comments, and BibTeX fields. | Syntax Highlighter | **PASS** |
-| `test_failed_compilation_preserves_previous_pdf` | Verifies that a broken build preserves existing working PDF output rather than deleting or corrupting it. | Compiler Service | **PASS** |
-| `test_pdf_viewer_widget` | Verifies high-DPI PDF preview initialization, continuous scrolling mode, and zoom controls. | PDF Viewer Widget | **PASS** |
-| `test_synctex_service_parsing` | Verifies forward and inverse SyncTeX coordinate translation with graceful fallback handling. | SyncTeX Service | **PASS** |
+| `test_path_traversal_security` | Verifies path jail enforcement preventing directory traversal outside the active project root directory. | File Security | **PASS** |
+| `test_atomic_write_safety` | Verifies atomic file writing via temporary file replacement preventing corruption on unexpected interrupts. | File System | **PASS** |
+| `test_desktop_ui_initialization` | Verifies PySide6 desktop UI starts up cleanly with Ribbon bar, Home Dashboard, and Project Explorer. | Desktop Shell | **PASS** |
+| `test_syntax_highlighter_latex_and_bibtex` | Verifies LaTeX and BibTeX syntax highlighting rules, command formatting, math styling, and comment colors. | Syntax Highlighter | **PASS** |
+| `test_code_editor_line_numbers_and_search` | Verifies line number gutter area, error line indicators, and inline search & replace bar. | Code Editor | **PASS** |
+| `test_compiler_discovery` | Verifies detection of local TeX Live and MiKTeX binaries (`pdflatex`, `xelatex`, `lualatex`, `bibtex`, `synctex`). | LaTeX Service | **PASS** |
+| `test_failed_compilation_preserves_previous_pdf` | Verifies that a broken compilation preserves any previously generated working PDF. | Compiler Daemon | **PASS** |
+| `test_log_parser_errors_and_warnings` | Verifies extraction of LaTeX error lines, error descriptions, and warning messages from build logs. | Log Diagnostics | **PASS** |
+| `test_pdf_viewer_widget` | Verifies `QPdfDocument` and `InteractivePdfView` multi-page rendering, zoom controls, and page navigation. | PDF Preview | **PASS** |
+| `test_synctex_service_parsing` | Verifies forward and inverse SyncTeX coordinate translation and gzip decompression fallback. | SyncTeX Engine | **PASS** |
+| `test_sync_bridge_latex_loading_and_dict_serialization` | Verifies parsing raw LaTeX source into CST and serializing structured dictionary for QWebChannel JavaScript canvas. | SyncBridge | **PASS** |
+| `test_sync_bridge_surgical_visual_update` | Verifies modifying a visual block surgically patches LaTeX source without touching opaque macros or TikZ blocks. | SyncBridge | **PASS** |
+| `test_sync_bridge_opaque_block_mutation_blocked` | Verifies that attempting to mutate an opaque block visually is rejected with zero data corruption. | SyncBridge Safety | **PASS** |
+| `test_sync_bridge_insert_academic_blocks` | Verifies inserting academic elements (table, equation, figure) generates valid LaTeX environments. | SyncBridge Insert | **PASS** |
+| `test_sync_bridge_coordinate_mapping` | Verifies looking up blocks by source line coordinates works accurately. | Source Mapper | **PASS** |
+| `test_document_tab_mode_switching` | Verifies DocumentTab initializes visual and code editors and switches view modes (Visual, Source, Split). | Workspace | **PASS** |
 
 ---
 
-## 3. Environment Verification
+## 3. Environment & Hardware Conformance
 
-- **Python Version:** 3.11.9
-- **GUI Framework:** PySide6 6.12.0 with QtPdf and QtPdfWidgets
-- **LaTeX Distribution:** MiKTeX installed at `E:\miktex\miktex\bin\x64\pdflatex.exe`
-- **Operating System:** Windows 10/11 x86_64
+- **Target System:** AMD Ryzen 5 5600G (6C/12T) | NVIDIA RTX 3060 12GB | 16 GB RAM | Windows 10/11
+- **Python Environment:** Python 3.11.9 64-bit
+- **GUI Framework:** PySide6 6.12.0 (Qt 6.12+)
+- **Storage Subsystem:** SQLite 3 in WAL mode with active foreign key constraints
+- **Test Pass Rate:** **100% (28 passed, 0 failed, 0 errors)**

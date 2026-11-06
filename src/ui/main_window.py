@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
 )
 from src.core.project import ProjectManager, Project
+from src.core.document import BlockType
 from src.storage.file_manager import FileManager
 from src.services.latex_service import (
     LaTeXCompilerService,
@@ -111,6 +112,11 @@ class MainWindow(QMainWindow):
         self.ribbon.compile_clicked.connect(self.action_compile_pdf)
         self.ribbon.view_mode_changed.connect(self.action_set_view_mode)
         self.ribbon.forward_sync_clicked.connect(self.action_forward_synctex)
+        self.ribbon.insert_section_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.SECTION))
+        self.ribbon.insert_equation_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.EQUATION))
+        self.ribbon.insert_table_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.TABLE))
+        self.ribbon.insert_figure_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.FIGURE))
+        self.ribbon.insert_citation_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.PARAGRAPH, r"\cite{sample_ref}"))
         container_layout.addWidget(self.ribbon)
 
         # Stacked Central Area (Dashboard vs Document Workspace)
