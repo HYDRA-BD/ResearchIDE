@@ -20,16 +20,6 @@ D:/ResearchIDE/
 ├── planning/                         # Roadmap & Phase Plans
 │   ├── DEVELOPMENT_ROADMAP.md        # Master 8-Phase Roadmap
 │   └── PHASE_0_IMPLEMENTATION_PLAN.md# Phase 0 Execution Plan
-├── prompts/                          # Master Prompt Library (Authoritative)
-│   ├── MASTER_INSTRUCTIONS.md        # Permanent Development Rules
-│   ├── PHASE_00_ARCHITECTURE.md      # Phase 0 Instructions
-│   ├── PHASE_01_FOUNDATION.md        # Phase 1 Instructions
-│   ├── PHASE_02_LATEX_ENGINE.md      # Phase 2 Instructions
-│   ├── PHASE_03_VISUAL_EDITOR.md     # Phase 3 Instructions
-│   ├── PHASE_04_LOCAL_AI.md          # Phase 4 Instructions
-│   ├── PHASE_05_RESEARCH_INTELLIGENCE.md # Phase 5 Instructions
-│   ├── PHASE_06_PUBLICATION.md       # Phase 6 Instructions
-│   └── PHASE_07_RELEASE.md           # Phase 7 Instructions
 ├── src/                              # Application Source Code
 │   ├── __init__.py
 │   ├── core/                         # Core Document Model & Synchronization

@@ -115,6 +115,10 @@ test_global.db
 *.swp
 *.swo
 
+# --- Internal Prompt Library & Development Prompts ---
+prompts/
+
+
 # --- IDEs & Developer Tools ---
 .idea/
 .vscode/

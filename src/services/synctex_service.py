@@ -189,3 +189,4 @@ class SyncTeXService:
         except Exception as e:
             app_logger.error(f"Error in inverse parsing synctex.gz: {e}")
         return None
+

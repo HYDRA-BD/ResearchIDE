@@ -220,3 +220,4 @@ class PDFViewerWidget(QWidget):
         query = self.search_input.text().strip()
         if query:
             self.search_model.setSearchString(query)
+

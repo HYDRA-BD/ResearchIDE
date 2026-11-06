@@ -22,7 +22,7 @@ ResearchIDE is a comprehensive, local-first academic research environment and sc
 
 ## 2. Fixed Architectural Foundations
 
-As established in `prompts/MASTER_INSTRUCTIONS.md`:
+Core System Decisions:
 1. **Operating System:** Windows 10/11 64-bit.
 2. **Primary Programming Language:** Python 3.11+ with strict type hints (`typing`, `dataclasses`, `pydantic`).
 3. **Desktop GUI Framework:** PySide6 (Qt 6.7+ for Python) leveraging native desktop widgets, high-DPI scaling, QWebEngineView for rich document canvas and PDF rendering, and Qt styling.
@@ -82,7 +82,7 @@ flowchart TD
 
 ## 5. Development Governance
 
-Development is strictly phased according to `prompts/` specifications:
+Development is structured into consecutive phased engineering milestones:
 - **Phase 0:** System Architecture & Technical Foundation *(Current)*
 - **Phase 1:** Application Foundation & PySide6 Workspace
 - **Phase 2:** LaTeX Source Editor, Compiler, and PDF Preview

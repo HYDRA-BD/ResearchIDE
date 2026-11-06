@@ -145,3 +145,4 @@ class LaTeXHighlighter(QSyntaxHighlighter):
                 start = match.start()
                 length = match.end() - start
                 self.setFormat(start, length, fmt)
+

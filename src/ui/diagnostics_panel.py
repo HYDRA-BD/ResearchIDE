@@ -93,3 +93,4 @@ class DiagnosticsPanel(QWidget):
         self.table.setRowCount(0)
         self.raw_log_edit.clear()
         self.tabs.setTabText(0, "Issues (0)")
+

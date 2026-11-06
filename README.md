@@ -37,9 +37,6 @@ ResearchIDE/
 │   ├── TECHNICAL_ARCHITECTURE.md
 │   ├── FEASIBILITY_AND_RISK_ANALYSIS.md
 │   └── ARCHITECTURAL_DECISIONS.md
-├── prompts/              # Authoritative Development Instructions
-│   ├── MASTER_INSTRUCTIONS.md
-│   └── PHASE_00 to PHASE_07
 ├── src/                  # Application Source Code
 │   ├── core/             # Canonical Document Model & Sync Engine
 │   ├── ui/               # PySide6 Desktop Interface (Ribbon, Workspace, Dashboard)

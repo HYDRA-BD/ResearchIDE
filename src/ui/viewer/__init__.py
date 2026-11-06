@@ -2,3 +2,4 @@
 from src.ui.viewer.pdf_viewer import PDFViewerWidget
 
 __all__ = ["PDFViewerWidget"]
+
