@@ -23,6 +23,8 @@ class RibbonBar(QFrame):
     compile_clicked = Signal()
     settings_clicked = Signal()
     new_document_clicked = Signal()
+    view_mode_changed = Signal(str)  # 'split', 'editor_only', 'pdf_only'
+    forward_sync_clicked = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -167,14 +169,24 @@ class RibbonBar(QFrame):
         view_group, view_layout = self._create_group("Layout Modes")
         btn_split = QPushButton("🔀 Split View")
         btn_split.setProperty("class", "RibbonBtn")
-        btn_pdf_only = QPushButton("📄 PDF Preview")
+        btn_split.clicked.connect(lambda: self.view_mode_changed.emit("split"))
+
+        btn_editor_only = QPushButton("📝 Editor Only")
+        btn_editor_only.setProperty("class", "RibbonBtn")
+        btn_editor_only.clicked.connect(lambda: self.view_mode_changed.emit("editor_only"))
+
+        btn_pdf_only = QPushButton("📄 PDF Only")
         btn_pdf_only.setProperty("class", "RibbonBtn")
-        btn_zoom_fit = QPushButton("🔍 Fit Width")
-        btn_zoom_fit.setProperty("class", "RibbonBtn")
+        btn_pdf_only.clicked.connect(lambda: self.view_mode_changed.emit("pdf_only"))
+
+        btn_sync = QPushButton("🎯 Sync to PDF")
+        btn_sync.setProperty("class", "RibbonBtn")
+        btn_sync.clicked.connect(self.forward_sync_clicked.emit)
 
         view_layout.addWidget(btn_split)
+        view_layout.addWidget(btn_editor_only)
         view_layout.addWidget(btn_pdf_only)
-        view_layout.addWidget(btn_zoom_fit)
+        view_layout.addWidget(btn_sync)
         tab_layout.addWidget(view_group)
 
         tab_layout.addStretch()

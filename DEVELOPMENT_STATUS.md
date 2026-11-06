@@ -1,8 +1,8 @@
 # DEVELOPMENT STATUS TRACKER
 ## ResearchIDE: Live Phase & Feature Status
 **Last Updated:** 6 November 2026  
-**Current Phase:** **Phase 1 — Application Foundation (COMPLETE)**  
-**Next Phase:** **Phase 2 — LaTeX Editor, Compiler & PDF Preview**  
+**Current Phase:** **Phase 2 — LaTeX Editor, Compiler & PDF Preview (COMPLETE)**  
+**Next Phase:** **Phase 3 — Visual Document Editor & Bidirectional Synchronization**  
 
 ---
 
@@ -11,9 +11,9 @@
 | Phase | Description | Status | Completion Metric |
 |---|---|---|---|
 | **Phase 0** | System Architecture & Technical Foundation | **COMPLETE** | 9 Architecture docs created, Prototype verified (6/6 tests pass) |
-| **Phase 1** | Application Foundation (PySide6) | **COMPLETE** | Full desktop shell, Ribbon, Project Manager, SQLite DB (15/15 tests pass) |
-| **Phase 2** | LaTeX Editor, Compiler & PDF Preview | **PENDING** | Ready for execution upon approval |
-| **Phase 3** | Visual Document Editor & Sync | Pending | Dependent on Phase 2 |
+| **Phase 1** | Application Foundation (PySide6) | **COMPLETE** | Desktop shell, Ribbon, Project Manager, SQLite DB (15/15 tests pass) |
+| **Phase 2** | LaTeX Editor, Compiler & PDF Preview | **COMPLETE** | CodeEditor, MiKTeX Daemon, QPdfView, SyncTeX, Diagnostics (22/22 tests pass) |
+| **Phase 3** | Visual Document Editor & Sync | **PENDING** | Ready for execution upon approval |
 | **Phase 4** | Local AI Engine (Ollama) | Pending | Dependent on Phase 3 |
 | **Phase 5** | Research Intelligence & Literature | Pending | Dependent on Phase 4 |
 | **Phase 6** | Academic Templates & Publication Prep | Pending | Dependent on Phase 5 |
@@ -23,27 +23,21 @@
 
 ## 2. Feature Implementation Status
 
-### Completed Features (Phase 1)
-- Professional PySide6 Desktop Application (`MainWindow` in `src/ui/main_window.py`).
-- Office-style Ribbon Toolbar with Home, Insert, References, View, and AI tabs (`src/ui/ribbon.py`).
-- Dockable Project Explorer with hierarchical tree and context menus (`src/ui/explorer.py`).
-- Multi-document tab workspace with unsaved change tracking and auto-saving (`src/ui/workspace.py`).
-- Home Dashboard showing recent projects, quick action buttons, and productivity shortcuts (`src/ui/dashboard.py`).
-- Modal dialogs for Project Creation, Document Addition, and Application Preferences (`src/ui/dialogs/`).
-- Consistent academic Dark and Light QSS styling (`src/ui/theme.py`).
-- Thread-safe SQLite Database Manager with WAL mode, foreign keys, and integrity verification (`src/storage/database.py`).
-- Type-safe Repositories: Settings, Projects, and Documents (`src/storage/repositories/`).
-- Atomic File Operations and Path Traversal Security Jailing (`src/storage/file_manager.py`).
-- Project Lifecycle Management (create, scaffold, open, close, rename, delete) (`src/core/project.py`).
-- Application entrypoint and startup launcher (`src/main.py`).
-- Comprehensive automated test suite passing with 100% success (15 tests total).
+### Completed Features (Phase 2)
+- **LaTeX & BibTeX Syntax Highlighter:** Custom `QSyntaxHighlighter` with theme-aware rules for commands, math, comments, and bib fields (`src/ui/editors/latex_highlighter.py`).
+- **Professional Code Editor:** Gutter line numbers, current line highlight, error line markers, auto-indentation, bracket matching, autocomplete, and inline search & replace (`src/ui/editors/code_editor.py`).
+- **Compiler Daemon Service:** MiKTeX / TeX Live discovery (`pdflatex`, `xelatex`, `lualatex`, `bibtex`, `synctex`), background compilation worker thread, and safe file swapping (`src/services/latex_service.py`).
+- **Log Diagnostics Parser:** Extracts fatal errors, line numbers, and warnings into structured `LaTeXDiagnostic` items (`src/services/latex_service.py`).
+- **High-DPI PDF Preview Canvas:** `QPdfDocument` & `QPdfView` continuous scrolling, zoom controls (fit to width, fit in view), page navigation, and text search (`src/ui/viewer/pdf_viewer.py`).
+- **SyncTeX Bidirectional Synchronization:** Forward sync (Source -> PDF) and inverse sync (PDF double-click -> Source line) with fallback parsing (`src/services/synctex_service.py`).
+- **Diagnostics Panel & Split View:** Dockable issues list with double-click line jump navigation; split view in `DocumentWorkspace` with layout mode toggles (`src/ui/diagnostics_panel.py`).
+- **Automated Tests:** 22/22 passing tests covering compiler discovery, log parsing, editor gutter, PDF view, and SyncTeX navigation (`tests/test_phase2_latex_engine.py`).
 
-### Pending Features (Phase 2)
-- LaTeX syntax-highlighted code editor with line numbers and folding.
-- MiKTeX / TeX Live compiler daemon (`pdflatex`, `xelatex`, `lualatex`, `bibtex`).
-- Asynchronous compilation with structured error and warning log parsing.
-- Integrated high-DPI PDF preview canvas.
-- Bidirectional SyncTeX coordinate translation (Source $\leftrightarrow$ PDF).
+### Pending Features (Phase 3)
+- Word-style visual document editor canvas (ProseMirror / TipTap embedded via QWebEngineView).
+- Bidirectional synchronization between visual canvas and raw LaTeX code editor.
+- Opaque verbatim code pills for custom macros and complex environments.
+- Visual formatting ribbons (headings, equations, figures, tables).
 
 ---
 
@@ -51,4 +45,4 @@
 
 - **PySide6:** Installed (v6.12.0) with WebEngine, Pdf, and Core addons.
 - **LaTeX Distribution:** MiKTeX verified at `E:\miktex\miktex\bin\x64\pdflatex.exe`.
-- **Automated Tests:** 15/15 passing (100% pass rate).
+- **Automated Tests:** 22/22 passing (100% pass rate).

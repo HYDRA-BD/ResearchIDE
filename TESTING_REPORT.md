@@ -5,14 +5,15 @@
 **Milestones Tested:**  
 - **Phase 0 — System Architecture & Technical Prototype** (6 tests)  
 - **Phase 1 — Desktop Application Foundation & Workspace** (9 tests)  
-**Execution Status:** **ALL TESTS PASSED (15/15, 100%)**  
+- **Phase 2 — LaTeX Source Editor, Compiler Daemon & PDF Preview** (7 tests)  
+**Execution Status:** **ALL TESTS PASSED (22/22, 100%)**  
 
 ---
 
 ## 1. Test Execution Summary
 
 ```text
-Ran 15 tests in 0.522s
+Ran 22 tests in 0.607s
 Status: OK (100% Pass Rate)
 Failures: 0
 Errors: 0
@@ -40,12 +41,19 @@ Skipped: 0
 | `test_path_traversal_security` | Verifies `FileManager.validate_path_within_project` strictly blocks path traversal (`..`) attempts outside project root. | Security & Path Jail | **PASS** |
 | `test_atomic_write_safety` | Verifies atomic file writing via temporary swap files prevents data loss during file writes. | Atomic File I/O | **PASS** |
 | `test_desktop_ui_initialization` | Verifies headless PySide6 `MainWindow` startup with Ribbon toolbar, Home dashboard, Project Explorer, and workspace tabs. | PySide6 Desktop UI | **PASS** |
+| `test_compiler_discovery` | Verifies discovery of local TeX distributions and engines (`pdflatex`, `xelatex`, `lualatex`, `bibtex`, `synctex`). | Compiler Service | **PASS** |
+| `test_log_parser_errors_and_warnings` | Verifies structured extraction of fatal errors, line numbers, citation warnings, and overfull hbox logs. | LaTeX Log Parser | **PASS** |
+| `test_code_editor_line_numbers_and_search` | Verifies code editor line number gutter, active line highlighting, error markers, and search & replace engine. | Code Editor | **PASS** |
+| `test_syntax_highlighter_latex_and_bibtex` | Verifies syntax highlighters correctly configure rules for LaTeX commands, math, comments, and BibTeX fields. | Syntax Highlighter | **PASS** |
+| `test_failed_compilation_preserves_previous_pdf` | Verifies that a broken build preserves existing working PDF output rather than deleting or corrupting it. | Compiler Service | **PASS** |
+| `test_pdf_viewer_widget` | Verifies high-DPI PDF preview initialization, continuous scrolling mode, and zoom controls. | PDF Viewer Widget | **PASS** |
+| `test_synctex_service_parsing` | Verifies forward and inverse SyncTeX coordinate translation with graceful fallback handling. | SyncTeX Service | **PASS** |
 
 ---
 
 ## 3. Environment Verification
 
 - **Python Version:** 3.11.9
-- **GUI Framework:** PySide6 6.12.0
+- **GUI Framework:** PySide6 6.12.0 with QtPdf and QtPdfWidgets
 - **LaTeX Distribution:** MiKTeX installed at `E:\miktex\miktex\bin\x64\pdflatex.exe`
 - **Operating System:** Windows 10/11 x86_64

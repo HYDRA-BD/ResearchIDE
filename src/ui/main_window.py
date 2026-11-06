@@ -2,7 +2,7 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Optional
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QThread, Signal, QObject
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -17,16 +17,51 @@ from PySide6.QtWidgets import (
 )
 from src.core.project import ProjectManager, Project
 from src.storage.file_manager import FileManager
+from src.services.latex_service import (
+    LaTeXCompilerService,
+    CompilationResult,
+    LaTeXDiagnostic,
+)
+from src.services.synctex_service import SyncTeXService
 from src.ui.theme import get_theme_stylesheet
 from src.ui.ribbon import RibbonBar
 from src.ui.dashboard import HomeDashboard
 from src.ui.explorer import ProjectExplorer
 from src.ui.workspace import DocumentWorkspace
+from src.ui.diagnostics_panel import DiagnosticsPanel
 from src.ui.notifications import NotificationToast
 from src.ui.dialogs.new_project_dialog import NewProjectDialog
 from src.ui.dialogs.settings_dialog import SettingsDialog
 from src.ui.dialogs.new_document_dialog import NewDocumentDialog
 from src.utils.logger import app_logger
+
+
+class CompileWorker(QObject):
+    """Background worker executing LaTeX compilation without blocking the Qt event loop."""
+    finished = Signal(object)  # CompilationResult
+    status_updated = Signal(str)
+
+    def __init__(
+        self,
+        compiler_service: LaTeXCompilerService,
+        main_tex_path: Path,
+        engine: str = "pdflatex",
+        run_bibtex: bool = True,
+    ) -> None:
+        super().__init__()
+        self.compiler_service = compiler_service
+        self.main_tex_path = main_tex_path
+        self.engine = engine
+        self.run_bibtex = run_bibtex
+
+    def run(self) -> None:
+        result = self.compiler_service.compile(
+            main_tex_file=self.main_tex_path,
+            engine=self.engine,
+            run_bibtex=self.run_bibtex,
+            status_callback=self.status_updated.emit,
+        )
+        self.finished.emit(result)
 
 
 class MainWindow(QMainWindow):
@@ -35,11 +70,19 @@ class MainWindow(QMainWindow):
     def __init__(self, project_manager: Optional[ProjectManager] = None) -> None:
         super().__init__()
         self.setWindowTitle("ResearchIDE — Academic Research & LaTeX Environment")
-        self.resize(1366, 850)
+        self.resize(1400, 880)
         self.setMinimumSize(1024, 600)
 
         self.project_manager = project_manager or ProjectManager()
         self.settings = self.project_manager.settings_repo.load_settings()
+
+        # LaTeX Compiler and SyncTeX Services
+        self.compiler_service = LaTeXCompilerService(custom_bin_dir=self.settings.compiler.custom_bin_path)
+        synctex_bin = self.compiler_service.get_binary_path("synctex")
+        self.synctex_service = SyncTeXService(synctex_bin_path=synctex_bin)
+
+        self.compile_thread: Optional[QThread] = None
+        self.compile_worker: Optional[CompileWorker] = None
 
         self._init_ui()
         self._apply_theme()
@@ -49,7 +92,7 @@ class MainWindow(QMainWindow):
     def _init_ui(self) -> None:
         self.setObjectName("MainWindow")
 
-        # 1. Central Widget & Stack (Dashboard vs Document Workspace)
+        # 1. Central Widget & Stack
         self.central_container = QWidget()
         self.central_container.setObjectName("CentralWidget")
         self.setCentralWidget(self.central_container)
@@ -66,9 +109,11 @@ class MainWindow(QMainWindow):
         self.ribbon.settings_clicked.connect(self.action_open_settings)
         self.ribbon.new_document_clicked.connect(self.action_new_document)
         self.ribbon.compile_clicked.connect(self.action_compile_pdf)
+        self.ribbon.view_mode_changed.connect(self.action_set_view_mode)
+        self.ribbon.forward_sync_clicked.connect(self.action_forward_synctex)
         container_layout.addWidget(self.ribbon)
 
-        # Stacked Central Area
+        # Stacked Central Area (Dashboard vs Document Workspace)
         self.stacked_widget = QStackedWidget()
         self.dashboard = HomeDashboard()
         self.dashboard.new_project_requested.connect(self.action_new_project)
@@ -77,6 +122,8 @@ class MainWindow(QMainWindow):
         self.dashboard.settings_requested.connect(self.action_open_settings)
 
         self.workspace = DocumentWorkspace()
+        self.workspace.synctex_inverse_requested.connect(self.action_inverse_synctex)
+
         self.stacked_widget.addWidget(self.dashboard)   # Index 0
         self.stacked_widget.addWidget(self.workspace)   # Index 1
         container_layout.addWidget(self.stacked_widget)
@@ -91,14 +138,24 @@ class MainWindow(QMainWindow):
         self.explorer.new_file_requested.connect(self.action_new_document)
         self.dock_explorer.setWidget(self.explorer)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock_explorer)
-        self.dock_explorer.hide()  # Initially hidden until project is opened
+        self.dock_explorer.hide()
 
-        # 3. Application Menu Bar
+        # 3. Compilation Diagnostics Dock (Bottom)
+        self.dock_diagnostics = QDockWidget("Compilation Diagnostics", self)
+        self.dock_diagnostics.setObjectName("DockDiagnostics")
+        self.dock_diagnostics.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea | Qt.DockWidgetArea.TopDockWidgetArea)
+        self.diagnostics_panel = DiagnosticsPanel(self.dock_diagnostics)
+        self.diagnostics_panel.diagnostic_selected.connect(self.workspace.navigate_to_line)
+        self.dock_diagnostics.setWidget(self.diagnostics_panel)
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.dock_diagnostics)
+        self.dock_diagnostics.hide()
+
+        # 4. Application Menu Bar
         self._build_menu_bar()
 
-        # 4. Status Bar
+        # 5. Status Bar
         self.status_project_label = QLabel("No Project Active")
-        self.status_compiler_label = QLabel("Compiler: pdflatex")
+        self.status_compiler_label = QLabel(f"Compiler: {self.settings.compiler.active_engine}")
         self.status_hw_label = QLabel("GPU: RTX 3060 12GB | RAM: 16GB")
         self.statusBar().addWidget(self.status_project_label, 1)
         self.statusBar().addPermanentWidget(self.status_compiler_label)
@@ -135,6 +192,18 @@ class MainWindow(QMainWindow):
         act_exit.setShortcut(QKeySequence.StandardKey.Quit)
         act_exit.triggered.connect(self.close)
         file_menu.addAction(act_exit)
+
+        # Build / Compile Menu
+        build_menu = mb.addMenu("&Build")
+        act_compile = QAction("&Compile PDF", self)
+        act_compile.setShortcut(QKeySequence("Ctrl+B"))
+        act_compile.triggered.connect(self.action_compile_pdf)
+        build_menu.addAction(act_compile)
+
+        act_sync = QAction("&Sync to PDF", self)
+        act_sync.setShortcut(QKeySequence("F8"))
+        act_sync.triggered.connect(self.action_forward_synctex)
+        build_menu.addAction(act_sync)
 
         # Project Menu
         project_menu = mb.addMenu("&Project")
@@ -178,7 +247,6 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Autosaved project changes", 2000)
 
     def show_notification(self, message: str, level: str = "info") -> None:
-        """Surface non-blocking notification toast."""
         toast = NotificationToast(message, level=level, parent=self)
         toast.move(self.width() - toast.width() - 30, self.height() - toast.height() - 40)
         toast.show()
@@ -219,14 +287,19 @@ class MainWindow(QMainWindow):
         self.workspace.close_all_tabs()
         self.explorer.set_project_root(project.path)
         self.dock_explorer.show()
-        self.stacked_widget.setCurrentIndex(1)  # Show workspace
+        self.stacked_widget.setCurrentIndex(1)
 
         self.status_project_label.setText(f"Project: {project.name}")
         self.status_compiler_label.setText(f"Compiler: {self.settings.compiler.active_engine}")
 
-        # Open main.tex by default if it exists
+        # Open main.tex by default
         if project.main_tex_path.exists():
             self.workspace.open_document(project.main_tex_path)
+
+        # Check if pre-compiled PDF exists in build folder
+        existing_pdf = project.path / ".researchide" / "build" / "main.pdf"
+        if existing_pdf.exists():
+            self.workspace.load_pdf(existing_pdf)
 
         self._refresh_recents()
 
@@ -235,7 +308,8 @@ class MainWindow(QMainWindow):
             self.workspace.close_all_tabs()
             self.project_manager.close_current_project()
             self.dock_explorer.hide()
-            self.stacked_widget.setCurrentIndex(0)  # Show dashboard
+            self.dock_diagnostics.hide()
+            self.stacked_widget.setCurrentIndex(0)
             self.status_project_label.setText("No Project Active")
             self._refresh_recents()
             self.show_notification("Project closed.", level="info")
@@ -266,7 +340,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(
             self,
             "Confirm Permanent Deletion",
-            f"Are you sure you want to permanently delete the project '{current_name}' and all its files?\n\nThis cannot be undone.",
+            f"Are you sure you want to permanently delete '{current_name}' and all its files?\n\nThis cannot be undone.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -319,14 +393,115 @@ class MainWindow(QMainWindow):
         saved = self.workspace.save_current_document()
         if saved:
             self.statusBar().showMessage("Document saved.", 2500)
+            if self.settings.compiler.auto_compile_on_save:
+                self.action_compile_pdf()
+
+    def action_set_view_mode(self, mode: str) -> None:
+        self.workspace.set_split_mode(mode)
+
+    # --- Compilation Engine Integration ---
 
     def action_compile_pdf(self) -> None:
+        """Trigger asynchronous background LaTeX compilation."""
         if not self.project_manager.active_project:
             QMessageBox.information(self, "No Project", "No active project to compile.")
             return
+
+        # Save all open documents prior to build
         self.workspace.save_all_documents()
-        self.statusBar().showMessage("Compilation requested (Phase 2 integration)...", 3000)
-        self.show_notification("LaTeX compilation will execute via Phase 2 engine.", level="info")
+
+        main_tex = self.project_manager.active_project.main_tex_path
+        if not main_tex.exists():
+            QMessageBox.warning(self, "Missing Root", f"Root LaTeX file '{main_tex}' does not exist.")
+            return
+
+        if self.compile_thread and self.compile_thread.isRunning():
+            self.show_notification("Compilation is already in progress...", level="warning")
+            return
+
+        engine = self.settings.compiler.active_engine
+        self.statusBar().showMessage(f"Building PDF using {engine}...")
+        self.show_notification(f"Starting {engine} build...", level="info")
+
+        # Setup background thread worker
+        self.compile_thread = QThread(self)
+        self.compile_worker = CompileWorker(
+            compiler_service=self.compiler_service,
+            main_tex_path=main_tex,
+            engine=engine,
+            run_bibtex=True,
+        )
+        self.compile_worker.moveToThread(self.compile_thread)
+        self.compile_thread.started.connect(self.compile_worker.run)
+        self.compile_worker.status_updated.connect(lambda msg: self.statusBar().showMessage(msg, 4000))
+        self.compile_worker.finished.connect(self._on_compilation_finished)
+        self.compile_worker.finished.connect(self.compile_thread.quit)
+        self.compile_thread.finished.connect(self.compile_worker.deleteLater)
+        self.compile_thread.finished.connect(self.compile_thread.deleteLater)
+
+        self.compile_thread.start()
+
+    def _on_compilation_finished(self, result: CompilationResult) -> None:
+        """Handle compilation completion."""
+        # Update diagnostics panel
+        self.diagnostics_panel.set_diagnostics(result.diagnostics, result.log_content)
+
+        # Highlight errors in current editor
+        current_editor = self.workspace.get_current_editor()
+        error_lines = [d.line_number for d in result.diagnostics if d.severity == "error"]
+
+        if current_editor:
+            current_editor.set_error_lines(error_lines)
+
+        if result.success and result.pdf_path:
+            self.workspace.load_pdf(result.pdf_path)
+            self.dock_diagnostics.hide()
+            self.statusBar().showMessage(f"Compilation finished successfully in {result.duration_seconds:.2f}s", 5000)
+            self.show_notification(f"PDF built in {result.duration_seconds:.2f}s", level="success")
+        else:
+            self.dock_diagnostics.show()
+            self.statusBar().showMessage("Compilation failed. Check diagnostics.", 5000)
+            self.show_notification("Build failed. See issues panel.", level="error")
+            # If previous PDF was preserved, load it
+            if result.pdf_path and result.pdf_path.exists():
+                self.workspace.load_pdf(result.pdf_path)
+
+    # --- SyncTeX Navigation ---
+
+    def action_forward_synctex(self) -> None:
+        """Navigate PDF preview to matching position of current editor cursor."""
+        current_editor = self.workspace.get_current_editor()
+        if not current_editor or not current_editor.file_path:
+            return
+
+        pdf_path = self.project_manager.active_project.path / ".researchide" / "build" / "main.pdf" if self.project_manager.active_project else None
+        if not pdf_path or not pdf_path.exists():
+            self.show_notification("Compile document first to generate SyncTeX coordinates.", level="warning")
+            return
+
+        line = current_editor.textCursor().blockNumber() + 1
+        col = current_editor.textCursor().columnNumber() + 1
+
+        loc = self.synctex_service.forward_sync(current_editor.file_path, line, col, pdf_path)
+        if loc:
+            self.workspace.pdf_viewer.scroll_to_page_and_point(loc.page, loc.x, loc.y)
+            self.statusBar().showMessage(f"Synced forward to PDF page {loc.page + 1}", 3000)
+
+    def action_inverse_synctex(self, page: int, x: float, y: float) -> None:
+        """Navigate source editor to line matching PDF click coordinates."""
+        if not self.project_manager.active_project:
+            return
+
+        pdf_path = self.project_manager.active_project.path / ".researchide" / "build" / "main.pdf"
+        if not pdf_path.exists():
+            return
+
+        loc = self.synctex_service.inverse_sync(pdf_path, page, x, y)
+        if loc:
+            self.workspace.navigate_to_line(loc.file_path.name, loc.line)
+            self.statusBar().showMessage(f"Synced inverse to {loc.file_path.name}:{loc.line}", 3000)
+
+    # --- Preferences Dialog ---
 
     def action_open_settings(self) -> None:
         dlg = SettingsDialog(self.settings, self)
@@ -334,11 +509,21 @@ class MainWindow(QMainWindow):
             self.project_manager.settings_repo.save_settings(self.settings)
             self._apply_theme()
             self._init_autosave_timer()
+
+            # Update compiler engine & bin paths
+            self.compiler_service.custom_bin_dir = Path(self.settings.compiler.custom_bin_path) if self.settings.compiler.custom_bin_path else None
+            synctex_bin = self.compiler_service.get_binary_path("synctex")
+            self.synctex_service.synctex_bin = synctex_bin
+
             self.status_compiler_label.setText(f"Compiler: {self.settings.compiler.active_engine}")
             self.show_notification("Preferences saved.", level="success")
 
     def closeEvent(self, event) -> None:
-        """Handle graceful window closure."""
+        if self.compile_thread and self.compile_thread.isRunning():
+            self.compiler_service.cancel_compilation()
+            self.compile_thread.quit()
+            self.compile_thread.wait(2000)
+
         if any(tab.is_dirty for tab in self.workspace.open_tabs.values()):
             reply = QMessageBox.question(
                 self,
@@ -357,4 +542,3 @@ class MainWindow(QMainWindow):
 
         self.project_manager.close_current_project()
         event.accept()
-

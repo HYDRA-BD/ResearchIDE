@@ -163,35 +163,56 @@ class LaTeXCompilerService:
         found: List[TeXDistributionInfo] = []
 
         candidates = []
-        if self.custom_bin_dir and self.custom_bin_dir.exists():
-            candidates.append(("Custom TeX", self.custom_bin_dir))
+        if self.custom_bin_dir:
+            try:
+                if self.custom_bin_dir.exists():
+                    candidates.append(("Custom TeX", self.custom_bin_dir))
+            except (PermissionError, OSError):
+                pass
 
         for p in self.STANDARD_MIKTEX_PATHS:
-            if p.exists():
-                candidates.append(("MiKTeX", p))
+            try:
+                if p.exists():
+                    candidates.append(("MiKTeX", p))
+            except (PermissionError, OSError):
+                pass
 
         for p in self.STANDARD_TEXLIVE_PATHS:
-            if p.exists():
-                candidates.append(("TeX Live", p))
+            try:
+                if p.exists():
+                    candidates.append(("TeX Live", p))
+            except (PermissionError, OSError):
+                pass
 
         # Check system PATH
         path_env = os.environ.get("PATH", "")
         for item in path_env.split(os.path.pathsep):
-            item_path = Path(item)
-            if (item_path / "pdflatex.exe").exists():
-                candidates.append(("System PATH", item_path))
+            if not item.strip():
+                continue
+            try:
+                item_path = Path(item)
+                if (item_path / "pdflatex.exe").exists():
+                    candidates.append(("System PATH", item_path))
+            except (PermissionError, OSError):
+                pass
 
         seen = set()
         for name, bin_dir in candidates:
-            resolved = bin_dir.resolve()
+            try:
+                resolved = bin_dir.resolve()
+            except (PermissionError, OSError):
+                continue
             if resolved in seen:
                 continue
             seen.add(resolved)
 
             engines = []
             for eng in ["pdflatex.exe", "xelatex.exe", "lualatex.exe", "bibtex.exe", "biber.exe", "synctex.exe"]:
-                if (resolved / eng).exists():
-                    engines.append(eng.replace(".exe", ""))
+                try:
+                    if (resolved / eng).exists():
+                        engines.append(eng.replace(".exe", ""))
+                except (PermissionError, OSError):
+                    pass
 
             if engines:
                 found.append(TeXDistributionInfo(name=name, bin_dir=resolved, engines_found=engines))
@@ -404,3 +425,4 @@ class LaTeXCompilerService:
             log_content=log_content,
             duration_seconds=duration,
         )
+
