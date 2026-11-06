@@ -31,6 +31,7 @@ class RibbonBar(QFrame):
     insert_figure_clicked = Signal()
     insert_citation_clicked = Signal()
     ai_panel_requested = Signal(str)  # command or prompt prefix
+    literature_panel_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -166,10 +167,15 @@ class RibbonBar(QFrame):
         ref_group, ref_layout = self._create_group("Citations & BibTeX")
         btn_cite = QPushButton("📖 Insert Citation")
         btn_cite.setProperty("class", "RibbonBtn")
+        btn_cite.clicked.connect(self.literature_panel_requested.emit)
+
         btn_import_bib = QPushButton("📥 Import .bib")
         btn_import_bib.setProperty("class", "RibbonBtn")
+        btn_import_bib.clicked.connect(self.literature_panel_requested.emit)
+
         btn_verify_cites = QPushButton("🔍 Verify Citations")
         btn_verify_cites.setProperty("class", "RibbonBtn")
+        btn_verify_cites.clicked.connect(self.literature_panel_requested.emit)
 
         ref_layout.addWidget(btn_cite)
         ref_layout.addWidget(btn_import_bib)

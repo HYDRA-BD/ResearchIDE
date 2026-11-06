@@ -31,6 +31,7 @@ from src.ui.explorer import ProjectExplorer
 from src.ui.workspace import DocumentWorkspace
 from src.ui.diagnostics_panel import DiagnosticsPanel
 from src.ui.ai_panel import AIAssistantPanel
+from src.ui.literature_panel import LiteraturePanel
 from src.ui.notifications import NotificationToast
 from src.ui.dialogs.new_project_dialog import NewProjectDialog
 from src.ui.dialogs.settings_dialog import SettingsDialog
@@ -119,6 +120,7 @@ class MainWindow(QMainWindow):
         self.ribbon.insert_figure_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.FIGURE))
         self.ribbon.insert_citation_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.PARAGRAPH, r"\cite{sample_ref}"))
         self.ribbon.ai_panel_requested.connect(self.action_show_ai_panel)
+        self.ribbon.literature_panel_requested.connect(self.action_show_literature_panel)
         container_layout.addWidget(self.ribbon)
 
         # Stacked Central Area (Dashboard vs Document Workspace)
@@ -169,7 +171,17 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_ai)
         self.dock_ai.hide()
 
-        # 5. Application Menu Bar
+        # 5. Research Literature & Reference Manager Dock (Right)
+        self.dock_literature = QDockWidget("Research Literature & References", self)
+        self.dock_literature.setObjectName("DockLiterature")
+        self.dock_literature.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
+        self.literature_panel = LiteraturePanel(self.dock_literature)
+        self.literature_panel.citation_insert_requested.connect(self._on_citation_inserted)
+        self.dock_literature.setWidget(self.literature_panel)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_literature)
+        self.dock_literature.hide()
+
+        # 6. Application Menu Bar
         self._build_menu_bar()
 
         # 5. Status Bar
@@ -575,6 +587,22 @@ class MainWindow(QMainWindow):
             self.show_notification("AI suggestion applied to manuscript.", level="success")
         else:
             self.show_notification("No active document to apply suggestion.", level="warning")
+
+    # --- Literature & Reference Management ---
+
+    def action_show_literature_panel(self) -> None:
+        """Display and focus the Research Literature & Reference Manager panel."""
+        self.dock_literature.show()
+        self.dock_literature.raise_()
+
+    def _on_citation_inserted(self, citation_latex: str) -> None:
+        """Insert citation directly into active editor at cursor position."""
+        editor = self.workspace.get_current_editor()
+        if editor:
+            editor.insertPlainText(citation_latex)
+            self.show_notification(f"Inserted citation: {citation_latex}", level="info")
+        else:
+            self.show_notification("No active document to insert citation.", level="warning")
 
     def closeEvent(self, event) -> None:
         if self.compile_thread and self.compile_thread.isRunning():

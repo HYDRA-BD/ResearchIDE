@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Phase 5: Research Intelligence and Literature Management] - 2026-11-06
+
+### Added
+- **Research PDF Ingestion & Extraction Engine:**
+  - Implemented `PDFExtractorService` (`src/services/literature_service.py`) using `pypdf` for page-by-page text extraction, DOI discovery, publication year heuristics, and reference scanning.
+  - Implemented strict source grounding via `EvidenceSnippet` linking extracted claims to exact file names and 1-indexed page numbers.
+- **Reference & Citation Manager:**
+  - Implemented `ReferenceManager` (`src/services/reference_service.py`) supporting BibTeX, RIS, and CSL JSON import and export.
+  - Implemented multi-style in-text citation formatting (LaTeX `\cite`, IEEE `[#]`, APA `(Author, Year)`).
+- **Comparative Literature Matrix:**
+  - Implemented `LiteratureMatrixGenerator` (`src/services/literature_matrix.py`) compiling structured dimensions (Research Objective, Methodology, Dataset, Key Results, Limitations) into exportable Markdown and LaTeX tables.
+- **Dataset Inspector:**
+  - Implemented `DatasetService` (`src/services/dataset_service.py`) for CSV/TSV parsing, column type inference (integer, float, string), null count calculation, and data previews.
+- **Literature & Reference UI:**
+  - Implemented dockable `LiteraturePanel` (`src/ui/literature_panel.py`) featuring *Library*, *References*, *Matrix*, and *Data* tabs with instant citation insertion into active editor tabs.
+- **Automated Test Suite:**
+  - Added 6 automated tests in `tests/test_phase5_research_intelligence.py` covering BibTeX/RIS/CSL round-trips, grounded evidence search, literature matrix synthesis, and dataset profiling (40/40 tests passing total).
+
+---
+
 ## [Phase 4: Local AI Engine and Academic Writing Assistant] - 2026-11-06
 
 ### Added

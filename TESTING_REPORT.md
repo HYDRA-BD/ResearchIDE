@@ -8,14 +8,15 @@
 - **Phase 2 — LaTeX Source Editor, Compiler Daemon & PDF Preview** (7 tests)  
 - **Phase 3 — Visual Document Editor & Bidirectional Synchronization** (6 tests)  
 - **Phase 4 — Local AI Engine & Academic Writing Assistant** (6 tests)  
-**Execution Status:** **ALL TESTS PASSED (34/34, 100%)**  
+- **Phase 5 — Research Intelligence & Literature Management** (6 tests)  
+**Execution Status:** **ALL TESTS PASSED (40/40, 100%)**  
 
 ---
 
 ## 1. Test Execution Summary
 
 ```text
-Ran 34 tests in 14.118s
+Ran 40 tests in 13.969s
 Status: OK (100% Pass Rate)
 Failures: 0
 Errors: 0
@@ -62,6 +63,12 @@ Skipped: 0
 | `test_project_context_packaging` | Verifies project context packager bounds context and combines manuscript and error text. | Context Engine | **PASS** |
 | `test_ollama_offline_graceful_handling` | Verifies that when Ollama is unreachable on host, status is reported without crashing. | Fault Tolerance | **PASS** |
 | `test_ai_assistant_panel_permission_workflow` | Verifies user must explicitly accept AI drafts before they can be applied to documents. | Permission Gate | **PASS** |
+| `test_bibtex_parsing_and_serialization` | Verifies parsing BibTeX entries with authors, title, year, journal, volume, doi, and formatting citations. | Reference Manager | **PASS** |
+| `test_ris_parsing_and_csl_export` | Verifies RIS tag parsing and CSL JSON generation. | Reference Manager | **PASS** |
+| `test_pdf_extraction_and_grounded_evidence` | Verifies PDF page text extraction and claim search grounded to exact file and page number. | Evidence Traceability | **PASS** |
+| `test_literature_matrix_generation` | Verifies multi-paper dimension extraction and export to Markdown and LaTeX tables. | Literature Matrix | **PASS** |
+| `test_dataset_csv_inspection` | Verifies local CSV parsing, column type profiling, and numerical summary extraction. | Dataset Service | **PASS** |
+| `test_literature_panel_ui` | Verifies LiteraturePanel initializes with Library, References, Matrix, and Data tabs and filters references. | UI Presentation | **PASS** |
 
 ---
 
@@ -71,4 +78,4 @@ Skipped: 0
 - **Python Environment:** Python 3.11.9 64-bit
 - **GUI Framework:** PySide6 6.12.0 (Qt 6.12+)
 - **Storage Subsystem:** SQLite 3 in WAL mode with active foreign key constraints
-- **Test Pass Rate:** **100% (34 passed, 0 failed, 0 errors)**
+- **Test Pass Rate:** **100% (40 passed, 0 failed, 0 errors)**
