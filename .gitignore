@@ -1,0 +1,135 @@
+# ==============================================================================
+# ResearchIDE Git Ignore Configuration
+# Operating System: Windows 10/11 | Language: Python 3.11+ / PySide6 | LaTeX
+# ==============================================================================
+
+# --- Python Bytecode & Cache ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# --- Virtual Environments ---
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.env
+.env.local
+
+# --- Python Packaging, Builds & PyInstaller ---
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.spec
+
+# --- Testing & Coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+htmlcov/
+
+# --- Qt / PySide6 Artifacts ---
+*.qmlc
+*.jsc
+*.rcc
+
+# --- LaTeX Compilation Artifacts & Auxiliary Files ---
+*.aux
+*.bbl
+*.blg
+*.brf
+*.bcf
+*.run.xml
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex
+*.synctex.gz
+*.synctex(busy)
+*.pdfsync
+*.nav
+*.snm
+*.vrb
+*.dvi
+*.xdv
+*.idx
+*.ilg
+*.ind
+*.glo
+*.gls
+*.glg
+*.acn
+*.acr
+*.alg
+*.ist
+*.maf
+*.mtc*
+*.dep
+
+# --- ResearchIDE Local Storage & Caches ---
+# Project-level local databases and volatile caches
+.researchide/cache/
+.researchide/snapshots/
+.researchide/logs/
+*.db-wal
+*.db-shm
+*.log
+
+# Allow template/seed databases if explicitly added, ignore user working databases
+**/Projects/*/.researchide/project.db
+global.db
+test_global.db
+
+# --- Temporary & Swap Files ---
+*.tmp
+*.bak
+*~
+*.swp
+*.swo
+
+# --- IDEs & Developer Tools ---
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+
+# --- Operating System Files ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
+
