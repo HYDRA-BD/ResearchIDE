@@ -30,6 +30,7 @@ class RibbonBar(QFrame):
     insert_table_clicked = Signal()
     insert_figure_clicked = Signal()
     insert_citation_clicked = Signal()
+    ai_panel_requested = Signal(str)  # command or prompt prefix
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -217,10 +218,15 @@ class RibbonBar(QFrame):
         ai_group, ai_layout = self._create_group("Local AI (Ollama)")
         btn_rewrite = QPushButton("✍️ Academic Rewrite")
         btn_rewrite.setProperty("class", "RibbonBtn")
+        btn_rewrite.clicked.connect(lambda: self.ai_panel_requested.emit("Rewrite paragraph academically:"))
+
         btn_explain = QPushButton("💡 Explain TeX Error")
         btn_explain.setProperty("class", "RibbonBtn")
+        btn_explain.clicked.connect(lambda: self.ai_panel_requested.emit("Explain this LaTeX error and provide fix:"))
+
         btn_math = QPushButton("📐 Verify Math (SymPy)")
         btn_math.setProperty("class", "RibbonBtn")
+        btn_math.clicked.connect(lambda: self.ai_panel_requested.emit("Explain and verify this mathematical formula:"))
 
         ai_layout.addWidget(btn_rewrite)
         ai_layout.addWidget(btn_explain)

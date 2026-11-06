@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Phase 4: Local AI Engine and Academic Writing Assistant] - 2026-11-06
+
+### Added
+- **Local Ollama Inference Client:**
+  - Implemented `OllamaService` (`src/services/ai_service.py`) targeting local endpoint (`localhost:11434`) without external internet/cloud calls.
+  - Implemented asynchronous non-blocking token streaming thread (`OllamaInferenceWorker`).
+  - Implemented strict Single-Model Resident Policy unloading previous models (`keep_alive: 0`) before loading a new model to enforce the 9.5 GB VRAM ceiling.
+  - Implemented five academic system prompt personas (`AIPersona`): Academic Writer, LaTeX Engineer, Research Analyst, Mathematical Reasoner, and Computational Assistant.
+  - Implemented project-bounded context packaging extracting active `.tex` excerpts, compiler diagnostic errors, and BibTeX entries.
+- **AI Permission System & Assistant Panel:**
+  - Implemented dockable `AIAssistantPanel` (`src/ui/ai_panel/ai_assistant_panel.py`) featuring live connection indicator, model selector, persona selector, and streaming output view.
+  - Implemented Quick Academic Command buttons (*Explain Error*, *Rewrite Formal*, *Draft Method*, *Explain Math*, *Suggest Cites*).
+  - Implemented mandatory user approval controls (*Accept & Apply*, *Discard*, *Copy*) ensuring AI drafts never automatically alter manuscripts without explicit confirmation.
+- **Hardware Resource Monitor:**
+  - Implemented `SystemResourceMonitor` (`src/services/resource_monitor.py`) querying system RAM via Win32 `GlobalMemoryStatusEx` and NVIDIA GPU VRAM via `nvidia-smi` without heavy third-party dependencies.
+- **Automated Test Suite:**
+  - Added 6 automated tests in `tests/test_phase4_local_ai.py` validating hardware metric queries, persona prompts, model switching, context packaging, offline fallback, and user approval workflow (34/34 tests passing total).
+
+---
+
 ## [Phase 3: Visual Document Editor and Bidirectional Synchronization] - 2026-11-06
 
 ### Added

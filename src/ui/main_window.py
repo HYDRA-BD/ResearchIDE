@@ -30,6 +30,7 @@ from src.ui.dashboard import HomeDashboard
 from src.ui.explorer import ProjectExplorer
 from src.ui.workspace import DocumentWorkspace
 from src.ui.diagnostics_panel import DiagnosticsPanel
+from src.ui.ai_panel import AIAssistantPanel
 from src.ui.notifications import NotificationToast
 from src.ui.dialogs.new_project_dialog import NewProjectDialog
 from src.ui.dialogs.settings_dialog import SettingsDialog
@@ -117,6 +118,7 @@ class MainWindow(QMainWindow):
         self.ribbon.insert_table_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.TABLE))
         self.ribbon.insert_figure_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.FIGURE))
         self.ribbon.insert_citation_clicked.connect(lambda: self.workspace.insert_element_in_current(BlockType.PARAGRAPH, r"\cite{sample_ref}"))
+        self.ribbon.ai_panel_requested.connect(self.action_show_ai_panel)
         container_layout.addWidget(self.ribbon)
 
         # Stacked Central Area (Dashboard vs Document Workspace)
@@ -156,7 +158,18 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.dock_diagnostics)
         self.dock_diagnostics.hide()
 
-        # 4. Application Menu Bar
+        # 4. Local AI Research Assistant Dock (Right)
+        self.dock_ai = QDockWidget("AI Research Assistant", self)
+        self.dock_ai.setObjectName("DockAIAssistant")
+        self.dock_ai.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
+        self.ai_panel = AIAssistantPanel(parent=self.dock_ai)
+        self.ai_panel.set_context_provider(self._get_ai_context)
+        self.ai_panel.suggestion_accepted.connect(self._on_ai_suggestion_accepted)
+        self.dock_ai.setWidget(self.ai_panel)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_ai)
+        self.dock_ai.hide()
+
+        # 5. Application Menu Bar
         self._build_menu_bar()
 
         # 5. Status Bar
@@ -523,6 +536,45 @@ class MainWindow(QMainWindow):
 
             self.status_compiler_label.setText(f"Compiler: {self.settings.compiler.active_engine}")
             self.show_notification("Preferences saved.", level="success")
+
+    # --- AI Research Assistant Integration ---
+
+    def action_show_ai_panel(self, initial_prompt: str = "") -> None:
+        """Show and focus the AI Research Assistant dock panel."""
+        self.dock_ai.show()
+        self.dock_ai.raise_()
+        if initial_prompt:
+            self.ai_panel.prompt_edit.setPlainText(initial_prompt)
+            self.ai_panel.prompt_edit.setFocus()
+
+    def _get_ai_context(self) -> str:
+        """Package active project context for local AI requests."""
+        active_tex = ""
+        editor = self.workspace.get_current_editor()
+        if editor:
+            active_tex = editor.toPlainText()
+
+        diagnostics_text = ""
+        if hasattr(self, "diagnostics_panel"):
+            diagnostics_text = self.diagnostics_panel.raw_log_edit.toPlainText()
+
+        return self.ai_panel.ollama.build_project_context(
+            active_tex_content=active_tex,
+            diagnostics_text=diagnostics_text,
+        )
+
+    def _on_ai_suggestion_accepted(self, approved_text: str) -> None:
+        """Apply user-approved AI text to active document."""
+        editor = self.workspace.get_current_editor()
+        if editor:
+            cursor = editor.textCursor()
+            if cursor.hasSelection():
+                cursor.insertText(approved_text)
+            else:
+                editor.insertPlainText("\n" + approved_text + "\n")
+            self.show_notification("AI suggestion applied to manuscript.", level="success")
+        else:
+            self.show_notification("No active document to apply suggestion.", level="warning")
 
     def closeEvent(self, event) -> None:
         if self.compile_thread and self.compile_thread.isRunning():

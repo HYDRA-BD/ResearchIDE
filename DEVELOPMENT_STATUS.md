@@ -1,8 +1,8 @@
 # DEVELOPMENT STATUS TRACKER
 ## ResearchIDE: Live Phase & Feature Status
 **Last Updated:** 6 November 2026  
-**Current Phase:** **Phase 3 — Visual Document Editor & Bidirectional Synchronization (COMPLETE)**  
-**Next Phase:** **Phase 4 — Local AI Engine (Ollama) & Academic Writing Assistant**  
+**Current Phase:** **Phase 4 — Local AI Engine (Ollama) & Writing Assistant (COMPLETE)**  
+**Next Phase:** **Phase 5 — Research Intelligence & Literature Management**  
 
 ---
 
@@ -14,8 +14,8 @@
 | **Phase 1** | Application Foundation (PySide6) | **COMPLETE** | Desktop shell, Ribbon, Project Manager, SQLite DB (15/15 tests pass) |
 | **Phase 2** | LaTeX Editor, Compiler & PDF Preview | **COMPLETE** | CodeEditor, MiKTeX Daemon, QPdfView, SyncTeX, Diagnostics (22/22 tests pass) |
 | **Phase 3** | Visual Document Editor & Sync | **COMPLETE** | QWebEngineView canvas, QWebChannel, SyncBridge, Mode Switcher (28/28 tests pass) |
-| **Phase 4** | Local AI Engine (Ollama) | **PENDING** | Ready for execution |
-| **Phase 5** | Research Intelligence & Literature | Pending | Dependent on Phase 4 |
+| **Phase 4** | Local AI Engine (Ollama) | **COMPLETE** | Local Ollama daemon client, Single-model governor, Permission diff UI (34/34 tests pass) |
+| **Phase 5** | Research Intelligence & Literature | **PENDING** | Ready for execution |
 | **Phase 6** | Academic Templates & Publication Prep | Pending | Dependent on Phase 5 |
 | **Phase 7** | Reliability, Performance & Windows Release | Pending | Dependent on Phase 6 |
 
@@ -23,19 +23,20 @@
 
 ## 2. Feature Implementation Status
 
-### Completed Features (Phase 3)
-- **Visual Academic Canvas:** Embedded `QWebEngineView` rendering academic structure (H1-H3 sections, paragraphs, equations, tables, figures) with responsive manuscript layout (`src/ui/editors/visual_editor.py`).
-- **Opaque Protected LaTeX Pills:** TikZ diagrams, custom macros, and unsupported environments rendered as locked, syntax-highlighted code pills preventing visual degradation.
-- **Bidirectional SyncBridge:** Coordinates CST model updates, converts visual modifications into surgical LaTeX source patches via `DocumentSyncEngine`, and propagates source changes back into DOM (`src/core/sync_bridge.py`).
-- **Multi-Mode Editor Tab:** `DocumentTab` seamlessly switches between Visual, LaTeX Source, and Side-by-Side Split views (`src/ui/workspace.py`).
-- **Visual-Source Cursor Mapping:** Double-click or selection in visual canvas jumps source editor to the exact line/column span; moving source cursor scrolls visual canvas to the corresponding block.
-- **Ribbon Insert Actions:** Connected Section, Equation, Figure, Table, and Citation buttons directly to active document tabs (`src/ui/ribbon.py`, `src/ui/main_window.py`).
-- **Automated Tests:** 6 comprehensive unit tests validating CST-to-dict serialization, surgical patching, opaque mutation rejection, academic element insertion, coordinate mapping, and mode switching (`tests/test_phase3_visual_editor.py`).
+### Completed Features (Phase 4)
+- **Local Ollama Integration:** Local HTTP client (`http://localhost:11434`) with model detection, model listing, info inspection, and connection health polling (`src/services/ai_service.py`).
+- **Single-Model Resident Policy:** Strictly unloads resident models (`keep_alive: 0`) before loading a new model to enforce the 9.5 GB working VRAM limit on the RTX 3060 12GB.
+- **Specialist Academic Personas:** Configurable system prompts for Academic Writer, LaTeX Engineer, Research Analyst, Mathematical Reasoner, and Computational Assistant.
+- **Context Boundaries:** Context packager extracts excerpts from active manuscript, open compiler diagnostics, and project BibTeX without cross-project leakage.
+- **AI Suggestion & Permission Interface:** Dockable `AIAssistantPanel` (`src/ui/ai_panel/ai_assistant_panel.py`) with streaming token preview, Quick Academic Command pills, and mandatory user approval buttons (`Accept & Apply`, `Discard`, `Copy`).
+- **Hardware Resource Monitor:** Real-time RAM monitoring via Win32 `GlobalMemoryStatusEx` and GPU VRAM via `nvidia-smi` (`src/services/resource_monitor.py`).
+- **Automated Tests:** 6 comprehensive unit tests validating hardware metric queries, persona system prompts, model switching, context packaging, offline graceful fallback, and the permission workflow (`tests/test_phase4_local_ai.py`).
 
 ---
 
 ## 3. Environment & Dependency Status
 
 - **PySide6:** Installed (v6.12.0) with WebEngine, WebChannel, Pdf, and Core modules.
+- **Local AI:** Ollama daemon client targeting local runtime (`localhost:11434`).
 - **LaTeX Distribution:** MiKTeX verified at `E:\miktex\miktex\bin\x64\pdflatex.exe`.
-- **Automated Tests:** 28/28 passing (100% pass rate).
+- **Automated Tests:** 34/34 passing (100% pass rate).

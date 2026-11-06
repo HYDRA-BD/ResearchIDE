@@ -7,14 +7,15 @@
 - **Phase 1 — Desktop Application Foundation & Workspace** (9 tests)  
 - **Phase 2 — LaTeX Source Editor, Compiler Daemon & PDF Preview** (7 tests)  
 - **Phase 3 — Visual Document Editor & Bidirectional Synchronization** (6 tests)  
-**Execution Status:** **ALL TESTS PASSED (28/28, 100%)**  
+- **Phase 4 — Local AI Engine & Academic Writing Assistant** (6 tests)  
+**Execution Status:** **ALL TESTS PASSED (34/34, 100%)**  
 
 ---
 
 ## 1. Test Execution Summary
 
 ```text
-Ran 28 tests in 1.210s
+Ran 34 tests in 14.118s
 Status: OK (100% Pass Rate)
 Failures: 0
 Errors: 0
@@ -55,6 +56,12 @@ Skipped: 0
 | `test_sync_bridge_insert_academic_blocks` | Verifies inserting academic elements (table, equation, figure) generates valid LaTeX environments. | SyncBridge Insert | **PASS** |
 | `test_sync_bridge_coordinate_mapping` | Verifies looking up blocks by source line coordinates works accurately. | Source Mapper | **PASS** |
 | `test_document_tab_mode_switching` | Verifies DocumentTab initializes visual and code editors and switches view modes (Visual, Source, Split). | Workspace | **PASS** |
+| `test_resource_monitor_query` | Verifies Windows system RAM queries return accurate metrics without external libraries. | Resource Monitor | **PASS** |
+| `test_persona_system_prompts_coverage` | Verifies each academic persona has an authoritative and distinct scholarly system prompt. | AI Personas | **PASS** |
+| `test_ollama_single_model_policy` | Verifies single resident model policy unloads previous model and switches safely. | Ollama Governance | **PASS** |
+| `test_project_context_packaging` | Verifies project context packager bounds context and combines manuscript and error text. | Context Engine | **PASS** |
+| `test_ollama_offline_graceful_handling` | Verifies that when Ollama is unreachable on host, status is reported without crashing. | Fault Tolerance | **PASS** |
+| `test_ai_assistant_panel_permission_workflow` | Verifies user must explicitly accept AI drafts before they can be applied to documents. | Permission Gate | **PASS** |
 
 ---
 
@@ -64,4 +71,4 @@ Skipped: 0
 - **Python Environment:** Python 3.11.9 64-bit
 - **GUI Framework:** PySide6 6.12.0 (Qt 6.12+)
 - **Storage Subsystem:** SQLite 3 in WAL mode with active foreign key constraints
-- **Test Pass Rate:** **100% (28 passed, 0 failed, 0 errors)**
+- **Test Pass Rate:** **100% (34 passed, 0 failed, 0 errors)**
