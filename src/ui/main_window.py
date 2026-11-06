@@ -37,6 +37,10 @@ from src.ui.dialogs.new_project_dialog import NewProjectDialog
 from src.ui.dialogs.settings_dialog import SettingsDialog
 from src.ui.dialogs.new_document_dialog import NewDocumentDialog
 from src.ui.dialogs.submission_dialog import SubmissionDialog
+from src.ui.dialogs.revision_dialog import RevisionHistoryDialog
+from src.services.revision_service import RevisionManager
+from src.services.recovery_service import DocumentRecoveryService
+from src.services.diagnostics_service import SystemDiagnosticsService
 from src.utils.logger import app_logger
 
 
@@ -123,6 +127,8 @@ class MainWindow(QMainWindow):
         self.ribbon.ai_panel_requested.connect(self.action_show_ai_panel)
         self.ribbon.literature_panel_requested.connect(self.action_show_literature_panel)
         self.ribbon.prepare_submission_clicked.connect(self.action_prepare_submission)
+        self.ribbon.revisions_clicked.connect(self.action_show_revisions)
+        self.ribbon.diagnostics_clicked.connect(self.action_show_diagnostics)
         container_layout.addWidget(self.ribbon)
 
         # Stacked Central Area (Dashboard vs Document Workspace)
@@ -276,8 +282,15 @@ class MainWindow(QMainWindow):
 
     def _on_autosave(self) -> None:
         if self.project_manager.active_project and self.workspace.open_tabs:
+            for tab in self.workspace.open_tabs.values():
+                if tab.is_dirty:
+                    DocumentRecoveryService.save_snapshot(
+                        self.project_manager.active_project.root_dir,
+                        tab.file_path,
+                        tab.code_editor.toPlainText(),
+                    )
             self.workspace.save_all_documents()
-            self.statusBar().showMessage("Autosaved project changes", 2000)
+            self.statusBar().showMessage("Autosaved project changes & updated snapshots", 2000)
 
     def show_notification(self, message: str, level: str = "info") -> None:
         toast = NotificationToast(message, level=level, parent=self)
@@ -328,6 +341,14 @@ class MainWindow(QMainWindow):
         # Open main.tex by default
         if project.main_tex_path.exists():
             self.workspace.open_document(project.main_tex_path)
+
+        # Check for uncommitted crash recovery snapshots
+        unrecovered = DocumentRecoveryService.detect_unrecovered_snapshots(project.root_dir)
+        if unrecovered:
+            self.show_notification(
+                f"Crash recovery: {len(unrecovered)} uncommitted snapshot(s) detected.",
+                level="warning",
+            )
 
         # Check if pre-compiled PDF exists in build folder
         existing_pdf = project.path / ".researchide" / "build" / "main.pdf"
@@ -425,7 +446,18 @@ class MainWindow(QMainWindow):
     def action_save_document(self) -> None:
         saved = self.workspace.save_current_document()
         if saved:
-            self.statusBar().showMessage("Document saved.", 2500)
+            tab = self.workspace.get_current_tab()
+            if tab and self.project_manager.active_project:
+                RevisionManager.create_revision(
+                    self.project_manager.active_project.root_dir,
+                    tab.file_path,
+                    tab.code_editor.toPlainText(),
+                )
+                DocumentRecoveryService.clear_snapshot(
+                    self.project_manager.active_project.root_dir,
+                    tab.file_path,
+                )
+            self.statusBar().showMessage("Document saved & revision checkpoint recorded.", 2500)
             if self.settings.compiler.auto_compile_on_save:
                 self.action_compile_pdf()
 
@@ -628,6 +660,49 @@ class MainWindow(QMainWindow):
             # If current document was modified by template application, reload it
             if current_tab:
                 current_tab.load_content()
+
+    def action_show_revisions(self) -> None:
+        """Browse, compare, and restore revisions for active document."""
+        if not self.project_manager.active_project:
+            QMessageBox.information(self, "Revision History", "Please open a project first.")
+            return
+        tab = self.workspace.get_current_tab()
+        if not tab:
+            QMessageBox.information(self, "Revision History", "No active document open to view revisions.")
+            return
+        dlg = RevisionHistoryDialog(
+            project_dir=self.project_manager.active_project.root_dir,
+            file_path=tab.file_path,
+            parent=self,
+        )
+        if dlg.exec():
+            tab.load_content()
+
+    def action_show_diagnostics(self) -> None:
+        """Display system health, compiler availability, and database diagnostics."""
+        db_path = self.project_manager.active_project.db_path if self.project_manager.active_project else None
+        report = SystemDiagnosticsService.run_diagnostics(db_path=db_path)
+        report_text = SystemDiagnosticsService.export_report_text(report)
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle("System Diagnostics & Environment Report")
+        dlg.resize(650, 420)
+        d_layout = QVBoxLayout(dlg)
+        te = QTextEdit()
+        te.setReadOnly(True)
+        te.setPlainText(report_text)
+        d_layout.addWidget(te)
+
+        btn_box = QHBoxLayout()
+        btn_copy = QPushButton("📋 Copy Diagnostic Report")
+        btn_copy.clicked.connect(lambda: QApplication.clipboard().setText(report_text))
+        btn_ok = QPushButton("Close")
+        btn_ok.clicked.connect(dlg.accept)
+        btn_box.addWidget(btn_copy)
+        btn_box.addStretch()
+        btn_box.addWidget(btn_ok)
+        d_layout.addLayout(btn_box)
+        dlg.exec()
 
     def closeEvent(self, event) -> None:
         if self.compile_thread and self.compile_thread.isRunning():

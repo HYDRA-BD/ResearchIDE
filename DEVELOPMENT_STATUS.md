@@ -1,8 +1,7 @@
 # DEVELOPMENT STATUS TRACKER
-## ResearchIDE: Live Phase & Feature Status
+## ResearchIDE: Complete Project Lifecycle Status
 **Last Updated:** 6 November 2026  
-**Current Phase:** **Phase 6 — Academic Templates & Publication Preparation (COMPLETE)**  
-**Next Phase:** **Phase 7 — Reliability, Performance & Windows Release**  
+**Current Milestone:** **RELEASE CANDIDATE v1.0.0 (ALL PHASES 0-7 COMPLETE)**  
 
 ---
 
@@ -17,25 +16,30 @@
 | **Phase 4** | Local AI Engine (Ollama) | **COMPLETE** | Local Ollama daemon client, Single-model governor, Permission diff UI (34/34 tests pass) |
 | **Phase 5** | Research Intelligence & Literature | **COMPLETE** | PyPDF extraction, Grounded evidence linking, BibTeX/RIS, Matrix (40/40 tests pass) |
 | **Phase 6** | Academic Templates & Publication Prep | **COMPLETE** | Publisher Profiles (IEEE, ACM, Springer, Elsevier), Auditor, Bundler (45/45 tests pass) |
-| **Phase 7** | Reliability, Performance & Windows Release | **PENDING** | Ready for execution |
+| **Phase 7** | Reliability, Performance & Windows Release | **COMPLETE** | Crash recovery, Revision history, Diagnostics, Inno installer (50/50 tests pass) |
 
 ---
 
-## 2. Feature Implementation Status
+## 2. Master Feature Status Matrix
 
-### Completed Features (Phase 6)
-- **Academic Template Profiles:** Master catalog supporting IEEE (`IEEEtran`), ACM (`acmart`), Springer Nature (`sn-jnl`), Elsevier (`elsarticle`), and General Preprint (`article`) formats (`src/services/template_service.py`).
-- **Non-Destructive Template Migrator:** Migrates manuscripts between publisher profiles while safely preserving all manuscript sections, equations, citations, figures, tables, and TikZ macros.
-- **Publication Compliance Auditor:** Rule-based verification auditing abstract word counts, required sections, figure/table captions, bibliography keys, and mandatory manual review advisories (`src/services/compliance_auditor.py`).
-- **Submission Package Bundler:** Assembles clean, reproducible submission bundles (`.zip`) containing the main `.tex` source, compiled `.pdf`, `.bib` databases, `assets/` figures, and an automated `SUBMISSION_CHECKLIST.md` report (`src/services/submission_bundler.py`).
-- **Submission UI & Ribbon Actions:** Interactive `SubmissionDialog` (`src/ui/dialogs/submission_dialog.py`) allowing researchers to select templates, audit manuscripts, and export ready-to-submit ZIP packages directly from the Ribbon toolbar.
-- **Automated Tests:** 5 comprehensive unit tests covering template catalogs, non-destructive migration, compliance auditor rule validation, violation detection, and ZIP packaging (`tests/test_phase6_publication.py`).
+- [x] **Desktop Shell & Presentation:** Dark/Light academic QSS themes, Office-style ribbon tabs, dockable explorer, and real-time status bar.
+- [x] **Lossless Document Synchronization:** Dual-representation Concrete Syntax Tree (CST) engine with opaque protected code pills (🔒 OPAQUE LATEX) preventing visual corruption of complex macros and TikZ diagrams.
+- [x] **Multi-Mode Workspace:** Instant switching between Visual Word-like editor, LaTeX Source editor, and Side-by-Side split view with two-way cursor synchronization.
+- [x] **Local LaTeX Compilation Engine:** Auto-discovery of local MiKTeX and TeX Live (`pdflatex`, `xelatex`, `lualatex`, `bibtex`, `synctex`), background compilation worker, and failed-build PDF preservation.
+- [x] **High-DPI PDF Preview & SyncTeX:** Interactive continuous PDF rendering with forward (Source $\to$ PDF) and inverse (double-click PDF $\to$ Source line) navigation.
+- [x] **Local AI Writing Assistant (Ollama):** Strict Single-Model Resident Policy (< 9.5 GB VRAM ceiling on RTX 3060 12GB), multi-persona prompts, and mandatory user approval gate (`Accept & Apply`, `Discard`, `Copy`).
+- [x] **Research PDF Library & Evidence Traceability:** Local text/metadata extraction, BibTeX/RIS/CSL reference manager, grounded claim-to-page evidence linking, and automated comparative literature matrix synthesis.
+- [x] **Dataset Inspection:** Local CSV/TSV table preview with column data type profiling and missing-value statistics.
+- [x] **Publication Preparation:** Official publisher templates (IEEE, ACM, Springer Nature, Elsevier), automated compliance auditor, and one-click submission ZIP packager.
+- [x] **Reliability & Recovery:** Pre-mutation snapshots, crash recovery detection, automatic revision history checkpoints with unified line diffs, and system diagnostic health audits.
+- [x] **Distribution Ready:** Standalone PyInstaller build specification (`packaging/ResearchIDE.spec`) and Inno Setup installer wizard script (`packaging/installer.iss`).
 
 ---
 
-## 3. Environment & Dependency Status
+## 3. Environment & Hardware Conformance
 
-- **PySide6:** Installed (v6.12.0) with WebEngine, WebChannel, Pdf, and Core modules.
-- **PDF Extraction:** `pypdf` (v6.21.4).
-- **LaTeX Distribution:** MiKTeX verified at `E:\miktex\miktex\bin\x64\pdflatex.exe`.
-- **Automated Tests:** 45/45 passing (100% pass rate).
+- **Target System:** AMD Ryzen 5 5600G (6C/12T) | NVIDIA RTX 3060 12GB | 16 GB RAM | Windows 10/11
+- **Python Environment:** Python 3.11.9 64-bit
+- **GUI Framework:** PySide6 6.12.0 (Qt 6.12+)
+- **Storage Subsystem:** SQLite 3 in WAL mode with active foreign key constraints
+- **Test Pass Rate:** **100% (50 passed, 0 failed, 0 errors)**

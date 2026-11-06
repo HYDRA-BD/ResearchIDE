@@ -34,6 +34,11 @@ class Project:
             self.project_repo.init_project_metadata(self.id, self.name, self.description)
 
     @property
+    def root_dir(self) -> Path:
+        """Alias for project root directory path."""
+        return self.path
+
+    @property
     def src_dir(self) -> Path:
         return self.path / "src"
 

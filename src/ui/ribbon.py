@@ -33,6 +33,8 @@ class RibbonBar(QFrame):
     ai_panel_requested = Signal(str)  # command or prompt prefix
     literature_panel_requested = Signal()
     prepare_submission_clicked = Signal()
+    revisions_clicked = Signal()
+    diagnostics_clicked = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -116,12 +118,22 @@ class RibbonBar(QFrame):
         doc_layout.addWidget(btn_package)
         tab_layout.addWidget(doc_group)
 
-        # 3. Preferences Group
-        pref_group, pref_layout = self._create_group("Preferences")
+        # 3. Tools & Preferences Group
+        pref_group, pref_layout = self._create_group("Tools & Preferences")
+        btn_revisions = QPushButton("🕒 Revisions")
+        btn_revisions.setProperty("class", "RibbonBtn")
+        btn_revisions.clicked.connect(self.revisions_clicked.emit)
+
+        btn_diagnostics = QPushButton("🩺 Diagnostics")
+        btn_diagnostics.setProperty("class", "RibbonBtn")
+        btn_diagnostics.clicked.connect(self.diagnostics_clicked.emit)
+
         btn_settings = QPushButton("⚙️ Settings")
         btn_settings.setProperty("class", "RibbonBtn")
         btn_settings.clicked.connect(self.settings_clicked.emit)
 
+        pref_layout.addWidget(btn_revisions)
+        pref_layout.addWidget(btn_diagnostics)
         pref_layout.addWidget(btn_settings)
         tab_layout.addWidget(pref_group)
 

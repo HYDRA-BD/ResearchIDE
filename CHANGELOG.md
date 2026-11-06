@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Phase 7 / v1.0.0 Release Candidate: Reliability, Performance & Windows Release] - 2026-11-06
+
+### Added
+- **Crash Recovery & Unclean Exit Protection:**
+  - Implemented `DocumentRecoveryService` (`src/services/recovery_service.py`) generating timestamped pre-mutation snapshots in `.researchide/snapshots/` and tracking unclean exits.
+  - Implemented automatic recovery detection and safe one-click restoration of unpersisted work.
+- **Document Revision Checkpoint & Rollback System:**
+  - Implemented `RevisionManager` (`src/services/revision_service.py`) maintaining content-hashed document revision checkpoints inside `.researchide/revisions/`.
+  - Implemented unified line-by-line diff calculation between arbitrary revision timestamps and the active manuscript.
+  - Implemented non-destructive revision rollback with automatic pre-rollback safety snapshots.
+  - Implemented interactive `RevisionDialog` (`src/ui/dialogs/revision_dialog.py`) with side-by-side revision selection, diff preview, and one-click rollback.
+- **System Health & Hardware Diagnostics:**
+  - Implemented `SystemDiagnosticsService` (`src/services/diagnostics_service.py`) executing full-stack environment verification:
+    - Host CPU, Win32 RAM, and RTX 3060 VRAM metrics.
+    - MiKTeX / TeX Live compiler binary validation (`pdflatex`, `xelatex`, `lualatex`, `bibtex`, `synctex`).
+    - Local Ollama runtime connectivity and model registry check.
+    - SQLite database integrity check via `PRAGMA integrity_check`.
+- **Windows Packaging & Installer Setup:**
+  - Authored PyInstaller build specification (`packaging/ResearchIDE.spec`) configured for PySide6, QtWebEngine, QtPdf, and SymPy.
+  - Authored Inno Setup 6 installer wizard script (`packaging/installer.iss`) with Windows desktop shortcuts, file associations (`.tex`, `.bib`), and clean uninstallation.
+- **Academic Release Documentation:**
+  - Created `docs/USER_MANUAL.md`: End-to-end user manual covering installation, project setup, visual editing, AI writing assistance, and compilation.
+  - Created `docs/TROUBLESHOOTING.md`: Diagnostic guide covering MiKTeX PATH issues, Ollama offline errors, and VRAM management.
+  - Created `docs/OFFLINE_OPERATION_GUIDE.md`: Zero-internet airgap verification guide detailing local model caches and offline library management.
+- **Automated Test Suite:**
+  - Added 5 unit tests in `tests/test_phase7_release_and_reliability.py` verifying recovery snapshots, revision checkpointing, diff/restore lifecycles, diagnostics reporting, and 100% offline workflow execution (50/50 tests passing total).
+
+---
+
 ## [Phase 6: Academic Templates and Publication Preparation] - 2026-11-06
 
 ### Added

@@ -62,7 +62,7 @@ ResearchIDE/
 ### 2. Setup
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/ResearchIDE.git
+git clone https://github.com/HYDRA-BD/ResearchIDE.git
 cd ResearchIDE
 
 # Install dependencies
@@ -85,12 +85,12 @@ python src/main.py
 
 - [x] **Phase 0: System Architecture & Technical Prototype** (Complete)
 - [x] **Phase 1: Application Foundation & PySide6 Desktop Shell** (Complete)
-- [ ] **Phase 2: LaTeX Source Editor, Compiler Daemon & PDF Preview** (Ready)
-- [ ] **Phase 3: Visual Document Editor & Bidirectional Synchronization**
-- [ ] **Phase 4: Local AI Engine (Ollama)**
-- [ ] **Phase 5: Research Intelligence & Literature Management**
-- [ ] **Phase 6: Academic Templates & Publication Preparation**
-- [ ] **Phase 7: Reliability, Performance & Windows Installer**
+- [x] **Phase 2: LaTeX Source Editor, Compiler Daemon & PDF Preview** (Complete)
+- [x] **Phase 3: Visual Document Editor & Bidirectional Synchronization** (Complete)
+- [x] **Phase 4: Local AI Engine & Academic Writing Assistant** (Complete)
+- [x] **Phase 5: Research Intelligence & Literature Management** (Complete)
+- [x] **Phase 6: Academic Templates & Publication Preparation** (Complete)
+- [x] **Phase 7: Reliability, Performance & Windows Installer** (Complete — v1.0.0 Release Candidate)
 
-See [`DEVELOPMENT_STATUS.md`](file:///d:/ResearchIDE/DEVELOPMENT_STATUS.md) for live progress.
+See [`DEVELOPMENT_STATUS.md`](DEVELOPMENT_STATUS.md) for live progress.
 

@@ -243,6 +243,14 @@ class LaTeXCompilerService:
 
         return None
 
+    def detect_available_engines(self) -> List[str]:
+        """Return list of detected engine names (e.g. ['pdflatex', 'xelatex', 'lualatex'])."""
+        engines = []
+        for eng in ("pdflatex", "xelatex", "lualatex"):
+            if self.get_binary_path(eng):
+                engines.append(eng)
+        return engines
+
     def cancel_compilation(self) -> None:
         """Cancel ongoing build process immediately."""
         self._is_cancelled = True
